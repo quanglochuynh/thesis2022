@@ -2,6 +2,7 @@ import numpy as np
 from numpy import random as rd
 
 
+
 class Matrix:
     def __init__(self, n,m):
         self.rows = n
@@ -15,7 +16,9 @@ class Matrix:
     
     @staticmethod
     def add(a,b):
-        if (np.shape(a.data) == np.shape(b.data)):
+        print(a.cols)
+        print(b.cols)
+        if ((a.rows == b.rows) & (a.cols == b.cols)):
             c = Matrix(a.rows, a.cols)
             
             c.data = np.add(a.data,b.data)
@@ -24,8 +27,9 @@ class Matrix:
             print("wrong dims")
             return -1
 
+    @staticmethod
     def subtract(a,b):
-        if (np.shape(a.data) == np.shape(b.data)):
+        if ((a.rows == b.rows) & (a.cols == b.cols)):
             c = Matrix(a.rows, a.cols)
             
             c.data = np.subtract(a.data,b.data)
@@ -34,8 +38,9 @@ class Matrix:
             print("wrong dims")
             return -1
     
+    @staticmethod
     def hadamard(a,b):
-        if (np.shape(a.data) == np.shape(b.data)):
+        if ((a.rows == b.rows) & (a.cols == b.cols)):
             c = Matrix(a.rows, a.cols)
             
             c.data = np.multiply(a.data,b.data)
@@ -44,9 +49,9 @@ class Matrix:
             print("wrong dims")
             return -1
 
-
+    @staticmethod
     def multiply(a,b):
-        if (np.shape(a.data)[1] == np.shape(b.data)[0]):
+        if (a.cols == b.rows):
             c = Matrix(a.rows, b.cols)
             c.data = np.dot(a.data,b.data)
             return c
@@ -54,21 +59,30 @@ class Matrix:
             print("wrong dims")
             return -1
 
+    @staticmethod
     def transpose(a):
         c = Matrix(a.cols, a.rows)
         c.data = np.transpose(a.data)
         return c
 
+    @staticmethod
     def array_2_matrix(a):
-        c = Matrix(len(a), 1);
-        c.data = a.transpose();
+        b = [a]
+        c = Matrix(len(a), 1)
+        c.data = np.array(b).T
+        return c
     
-k = Matrix(2, 3)
-k.randomize()
-l = Matrix(3, 4)
-l.randomize()
-r = Matrix.multiply(k, l)
+# k = Matrix(2, 3)
+# k.randomize()
+# l = Matrix(3, 4)
+# l.randomize()
+# r = Matrix.multiply(k, l)
 
-print(k.data)
-print(l.data)
-print(r.data)
+# print(k.data)
+# print(l.data)
+# print(r.data)
+
+# k = Matrix.array_2_matrix([1,2,3,4,5,6])
+# print(k.data)
+
+
