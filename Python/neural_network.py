@@ -49,9 +49,10 @@ class MultilayerNeuralNetwork:
             print("Wrong target dimension!")
             return -2
         else:
+            # print(input_array)
+            # print(target_array)
             #feed-forward
             layer_result_matrix_array = []
-
             feed_matrix = Matrix.array_2_matrix(input_array)
             layer_result_matrix_array.append(feed_matrix)
             for i in range(len(self.weight_matrix)):
@@ -68,8 +69,10 @@ class MultilayerNeuralNetwork:
                 gradient_matrix = Matrix.map(layer_result_matrix_array[i+1], dsigmoid)
                 gradient_matrix.data = gradient_matrix.data * self.learning_rate
                 delta = Matrix.multiply(gradient_matrix, Matrix.transpose(layer_result_matrix_array[i]))
-                self.weight_matrix[i] = Matrix.add(self.weight_matrix[i], delta)
-                self.bias_matrix[i] = Matrix.add(self.bias_matrix[i], gradient_matrix)
+                print(self.weight_matrix[i].data)
+                self.weight_matrix[i] = Matrix.add(self.weight_matrix[i].data, delta)
+                print(self.weight_matrix[i].data)
+                self.bias_matrix[i] = Matrix.add(self.bias_matrix[i].data, gradient_matrix)
                 if (i==-1): continue
                 weight_transposed = Matrix.transpose(self.weight_matrix[i])
                 error_matrix = Matrix.multiply(weight_transposed, error_matrix)
@@ -80,9 +83,6 @@ class MultilayerNeuralNetwork:
 
 
 
-nn = MultilayerNeuralNetwork([5,4,3,2], 0.1)
-# res = nn.feed_forward([1,2,3,4,5])
-nn.train(np.transpose([1,2,3,4,5]), [2, 3])
 
 
 
