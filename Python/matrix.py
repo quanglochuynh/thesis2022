@@ -12,12 +12,16 @@ class Matrix:
 
     def randomize(self):
         self.data = rd.rand(self.rows, self.cols)*2 - 1
+
+    @staticmethod
+    def map(m, fn):
+        res = Matrix(m.rows, m.cols)
+        res.data = map(fn, res.data)
+        return res
     
     
     @staticmethod
     def add(a,b):
-        print(a.cols)
-        print(b.cols)
         if ((a.rows == b.rows) & (a.cols == b.cols)):
             c = Matrix(a.rows, a.cols)
             
@@ -71,6 +75,10 @@ class Matrix:
         c = Matrix(len(a), 1)
         c.data = np.array(b).T
         return c
+
+    @staticmethod
+    def matrix_2_array(m):
+        return np.reshape(m.data, (1, len(m.data)))
     
 # k = Matrix(2, 3)
 # k.randomize()
