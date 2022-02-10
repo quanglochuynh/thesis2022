@@ -15,8 +15,10 @@ class Matrix:
 
     @staticmethod
     def map(m, fn):
-        res = Matrix(m.rows, m.cols)
-        res.data = map(fn, res.data)
+        res = m
+        for i in range(m.data.shape[0]):
+            for j in range(m.data.shape[1]):
+                m.data[i][j] = fn(m.data[i][j])
         return res
     
     
@@ -24,7 +26,6 @@ class Matrix:
     def add(a,b):
         if ((a.rows == b.rows) & (a.cols == b.cols)):
             c = Matrix(a.rows, a.cols)
-            
             c.data = np.add(a.data,b.data)
             return c
         else:
@@ -80,12 +81,27 @@ class Matrix:
     def matrix_2_array(m):
         return np.reshape(m.data, (1, len(m.data)))
     
-# k = Matrix(2, 3)
-# k.randomize()
-# l = Matrix(3, 4)
-# l.randomize()
-# r = Matrix.multiply(k, l)
 
+    @staticmethod
+    def scale(m,s):
+        k = Matrix(m.rows, m.cols)
+        k.data = np.multiply(m.data, s)
+        return k
+
+
+def fn(x):
+    return x*x
+
+
+
+# k = Matrix(2, 2)
+# k.randomize()
+# # l = Matrix(2, 3)
+# # l.randomize()
+# # r = Matrix.add(k, l)
+
+# print(k.data)
+# k = Matrix.map(k, fn)
 # print(k.data)
 # print(l.data)
 # print(r.data)
