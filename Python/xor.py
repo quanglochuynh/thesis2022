@@ -8,7 +8,7 @@ dataset.append(train_data([0,1], [1]))
 dataset.append(train_data([0,0], [0]))
 dataset.append(train_data([1,1], [0]))
 
-# mlnn = MultilayerNeuralNetwork([2, 4, 1], 1) 
+# mlnn = MultilayerNeuralNetwork([2, 4, 1], 0.1) 
 # mlnn.batch_training(dataset, 8000, 2, 0.9995)
 
 # inp = input("Save NN? Y/N: ")

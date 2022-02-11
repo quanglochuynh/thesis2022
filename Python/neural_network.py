@@ -87,7 +87,7 @@ class MultilayerNeuralNetwork:
         print("Result: ")
         for i in range(len(test_array)):
             res = self.feed_forward(test_array[i].input_array)
-            print(res.flatten().flatten())
+            print(res.flatten())
             error = np.subtract(test_array[i].target_array, res)
             deviation =np.add(deviation, np.absolute(error))
         print("\nNet error: " +  str(deviation.flatten().flatten()))
