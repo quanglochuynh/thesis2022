@@ -89,11 +89,6 @@ class Matrix:
         return k
 
 
-def fn(x):
-    return x*x
-
-
-
 # k = Matrix(2, 2)
 # k.randomize()
 # # l = Matrix(2, 3)
@@ -108,5 +103,3 @@ def fn(x):
 
 # k = Matrix.array_2_matrix([1,2,3,4,5,6])
 # print(k.data)
-
-

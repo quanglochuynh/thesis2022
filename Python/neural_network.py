@@ -91,7 +91,6 @@ class MultilayerNeuralNetwork:
             error = np.subtract(test_array[i].target_array, res)
             deviation =np.add(deviation, np.absolute(error))
         print("\nNet error: " +  str(deviation.flatten().flatten()))
-        # print(deviation)
     
     def save_weight(self, name):
         filename = "weight/"+name
