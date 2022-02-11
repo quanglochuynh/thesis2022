@@ -3,7 +3,7 @@ import numpy as np
 
 # c_scale =  [1,0,1,0,1,1,0,1,0,1,0,1]
 
-# name = ["C/Am", "C#/A#m", "D/Bm", "D#/Cm", "E/C#m", "F/Dm", "F#/D#m", "G/Em", "G#/Fm", "A/F#m", "A#/Gm", "B/G#m"]
+name = ["C/Am", "C#/A#m", "D/Bm", "D#/Cm", "E/C#m", "F/Dm", "F#/D#m", "G/Em", "G#/Fm", "A/F#m", "A#/Gm", "B/G#m"]
 # # data = [1,0,1,0,1,1,0,1,0,1,0,1]
 # dataset = []
 
