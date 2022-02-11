@@ -1,21 +1,16 @@
-# import numpy as np
-# import matplotlib.pyplot as plt 
-
-# x = np.linspace(-1,1, 100);
-
-# y = np.multiply(x,x);
-# y = np.multiply(y,x);
-
-# fig = plt.figure()
-# ax = fig.subplots()
-# ax.plot(x,y, color = 'b', label = 'Data points') 
-
-# plt.show()
-
+import cv2
 import numpy as np
-from numpy import random as rd
 
-x=rd.rand(5,10)
-x = 2*x
-x = x-1
-print(x)
+image = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/comga.jpeg')
+
+kernel1 = np.array([[-1, -1, -1],
+                    [-1,  8, -1],
+                    [-1, -1, -1]])
+
+edge_detect = cv2.filter2D(src=image, ddepth=-1, kernel=kernel1)
+# cv2.imshow('Original', image)
+cv2.imshow('Identity', edge_detect)
+
+
+cv2.waitKey(0) 
+cv2.destroyAllWindows()
