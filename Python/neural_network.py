@@ -98,8 +98,11 @@ class MultilayerNeuralNetwork:
         pickle.dump(self, outfile)
 
     @staticmethod
-    def load_weight(filename):
-        infile = open("/Users/lochuynhquang/Documents/thesis2022/Python/weight/" + filename, 'rb')
+    def load_weight(filename, os):      #true for macOS, false for Windows
+        if (os == "macos"):
+            infile = open("/Users/lochuynhquang/Documents/thesis2022/Python/weight/" + filename, 'rb')
+        else:
+            infile = open("/Users/quang/Documents/thesis2022/Python/weight/" + filename, 'rb')
         return pickle.load(infile)
 
 
