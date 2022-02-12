@@ -1,6 +1,7 @@
 
 from neural_network import MultilayerNeuralNetwork, train_data
 
+os = "windows"
 
 dataset = []
 dataset.append(train_data([1,0], [1]))
@@ -16,7 +17,7 @@ dataset.append(train_data([1,1], [0]))
 #     mlnn.save_weight("xor_final.plk")
 
 
-mlnn = MultilayerNeuralNetwork.load_weight("xor_final.plk")
+mlnn = MultilayerNeuralNetwork.load_weight("xor_final.plk", os)
 
 print(mlnn.feed_forward(dataset[0].input_array))
 print(mlnn.feed_forward(dataset[1].input_array))

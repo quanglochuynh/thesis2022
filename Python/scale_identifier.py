@@ -1,6 +1,8 @@
 from neural_network import MultilayerNeuralNetwork, train_data
 import numpy as np
 
+os = "Windows"
+
 name = ["C/Am", "C#/A#m", "D/Bm", "D#/Cm", "E/C#m", "F/Dm", "F#/D#m", "G/Em", "G#/Fm", "A/F#m", "A#/Gm", "B/G#m"]
 
 
@@ -33,7 +35,7 @@ name = ["C/Am", "C#/A#m", "D/Bm", "D#/Cm", "E/C#m", "F/Dm", "F#/D#m", "G/Em", "G
 # dataset.append(train_data([0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1], [0,0,0,0,0,0,0,0,0,0,0,1]))
 
 # mlnn = MultilayerNeuralNetwork([12, 12, 12], 0.1)
-mlnn = MultilayerNeuralNetwork.load_weight("scale_identifier_final.plk")
+mlnn = MultilayerNeuralNetwork.load_weight("scale_identifier_final.plk", os == "macOS")
 # mlnn.batch_training(dataset, 24000, 1, 0.9998)
 
 # inp = input("Save NN? Y/N: ")
