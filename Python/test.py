@@ -9,7 +9,7 @@ kernel1 = np.array([[-1, -1, -1],
 
 edge_detect = cv2.filter2D(src=image, ddepth=-1, kernel=kernel1)
 # cv2.imshow('Original', image)
-cv2.imshow('Identity', edge_detect)
+cv2.imshow('edge_detect', edge_detect)
 
 
 cv2.waitKey(0) 
