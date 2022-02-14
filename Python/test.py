@@ -31,8 +31,7 @@ def gpu():
     res = cp.dot(x_gpu, x_gpu)
     print(cp.shape(res))
 
-starttime = timeit.default_timer()
-print("The start time is :",starttime)
-cpu()
-print("The time difference is :", timeit.default_timer() - starttime)
+edge_detect = cv2.filter2D(src=image, ddepth=-1, kernel=kernel1)
+# cv2.imshow('Original', image)
+cv2.imshow('edge_detect', edge_detect)
 
