@@ -1,3 +1,4 @@
+from math import floor
 from neural_network import MultilayerNeuralNetwork, train_data
 import numpy as np
 
@@ -41,7 +42,14 @@ mlnn = MultilayerNeuralNetwork.load_weight("scale_identifier_final.plk", os)
 # inp = input("Save NN? Y/N: ")
 # if (inp == "Y"):
 #     mlnn.save_weight("scale_identifier_final.plk")
-
+def feed(inp):
+    res = mlnn.feed_forward(inp).flatten().tolist()
+    for i in range(12):
+        dot = ""
+        for j in range(floor(res[i]*10)):
+            dot = dot + "#"
+        print(name[i] + ":" + str(round(res[i], 4)) + ":     " + dot)
+    print("Best: " + name[res.index(max(res))])
 
 
 n = ""
@@ -49,54 +57,39 @@ inp = [0]*12
 while (n!="0"):
     n = input("Type the note: ")
     if (n=="c"):
-        inp[0] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[0] += 1
+        feed(inp)
     elif (n == "c#"):
         inp[1] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        feed(inp)
     elif (n == "d"):
-        inp[2] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[2] += 1
+        feed(inp)
     elif (n == "d#"):
-        inp[3] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[3] += 1
+        feed(inp)
     elif (n == "e"):
-        inp[4] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[4] += 1
+        feed(inp)
     elif (n == "f"):
-        inp[5] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[5] += 1
+        feed(inp)
     elif (n == "f#"):
-        inp[6] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[6] += 1
+        feed(inp)
     elif (n == "g"):
-        inp[7] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[7] += 1
+        feed(inp)
     elif (n == "g#"):
-        inp[8] = 1   
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))]) 
+        inp[8] += 1   
+        feed(inp)
     elif (n == "a"):
-        inp[9] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[9] += 1
+        feed(inp)
     elif (n == "a#"):
-        inp[10] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
+        inp[10] += 1
+        feed(inp)
     elif (n == "b"):
-        inp[11] = 1
-        res = mlnn.feed_forward(inp).flatten().tolist()
-        print(name[res.index(max(res))])
-    else:
-        exit()
-
+        inp[11] += 1
+        feed(inp)
     
