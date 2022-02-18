@@ -1,15 +1,22 @@
 import numpy as np
 from numpy import random as rd
+import cupy as cp
 
-class Matrix:
+
+
+class GPUMatrix:
     def __init__(self, n,m):
         self.rows = n
         self.cols = m        
-        self.data = np.array([[0]*m] * n)      #numpy array
+        self.data = cp.array([[0]*m] * n)      #cupy array
 
 
     def randomize(self):
-        self.data = rd.rand(self.rows, self.cols)*2 - 1
+        self.data = cp.array(rd.rand(self.rows, self.cols)*2 - 1)
+
+    def show(self):
+        print(cp.asarray(self.data))
+
 
     @staticmethod
     def map(m, fn):
@@ -23,8 +30,8 @@ class Matrix:
     @staticmethod
     def add(a,b):
         if ((a.rows == b.rows) & (a.cols == b.cols)):
-            c = Matrix(a.rows, a.cols)
-            c.data = np.add(a.data,b.data)
+            c = GPUMatrix(a.rows, a.cols)
+            c.data = cp.add(a.data,b.data)
             return c
         else:
             print("wrong dims")
@@ -33,9 +40,9 @@ class Matrix:
     @staticmethod
     def subtract(a,b):
         if ((a.rows == b.rows) & (a.cols == b.cols)):
-            c = Matrix(a.rows, a.cols)
+            c = GPUMatrix(a.rows, a.cols)
             
-            c.data = np.subtract(a.data,b.data)
+            c.data = cp.subtract(a.data,b.data)
             return c
         else:
             print("wrong dims")
@@ -44,9 +51,9 @@ class Matrix:
     @staticmethod
     def hadamard(a,b):
         if ((a.rows == b.rows) & (a.cols == b.cols)):
-            c = Matrix(a.rows, a.cols)
+            c = GPUMatrix(a.rows, a.cols)
             
-            c.data = np.multiply(a.data,b.data)
+            c.data = cp.multiply(a.data,b.data)
             return c
         else:
             print("wrong dims")
@@ -55,8 +62,8 @@ class Matrix:
     @staticmethod
     def multiply(a,b):
         if (a.cols == b.rows):
-            c = Matrix(a.rows, b.cols)
-            c.data = np.dot(a.data,b.data)
+            c = GPUMatrix(a.rows, b.cols)
+            c.data = cp.dot(a.data,b.data)
             return c
         else:
             print("wrong dims")
@@ -64,40 +71,40 @@ class Matrix:
 
     @staticmethod
     def transpose(a):
-        c = Matrix(a.cols, a.rows)
-        c.data = np.transpose(a.data)
+        c = GPUMatrix(a.cols, a.rows)
+        c.data = cp.transpose(a.data)
         return c
 
     @staticmethod
     def array_2_matrix(a):
         b = [a]
-        c = Matrix(len(a), 1)
-        c.data = np.array(b).T
+        c = GPUMatrix(len(a), 1)
+        c.data = cp.array(b).T
         return c
 
     @staticmethod
     def matrix_2_array(m):
-        return np.reshape(m.data, (1, len(m.data)))
+        return cp.asnumpy(cp.reshape(m.data, (1, len(m.data))))
     
 
     @staticmethod
     def scale(m,s):
-        k = Matrix(m.rows, m.cols)
-        k.data = np.multiply(m.data, s)
+        k = GPUMatrix(m.rows, m.cols)
+        k.data = cp.multiply(m.data, s)
         return k
 
 
-# k = Matrix(2, 2)
+# k = GPUMatrix(2, 3)
 # k.randomize()
-# # l = Matrix(2, 3)
-# # l.randomize()
-# # r = Matrix.add(k, l)
+# l = GPUMatrix(2, 3)
+# l.randomize()
+# r = GPUMatrix.add(k, l)
+# k.show() 
+# l.show()
+# print(type(k.data))
+# print(type(l.data))
+# r.show()
 
-# print(k.data)
-# k = Matrix.map(k, fn)
-# print(k.data)
-# print(l.data)
-# print(r.data)
 
-# k = Matrix.array_2_matrix([1,2,3,4,5,6])
+# k = GPUMatrix.array_2_matrix([1,2,3,4,5,6])
 # print(k.data)
