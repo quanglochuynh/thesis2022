@@ -1,37 +1,20 @@
-# import cv2
-# import numpy as np
+import cv2
+import numpy as np
 
-# image = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/comga.jpeg')
+di = '/thesis/no_aug/Grape___Black_rot/'
 
+image = cv2.imread(di + 'image (1).JPG')
 # kernel1 = np.array([[-1, -1, -1],
 #                     [-1,  8, -1],
 #                     [-1, -1, -1]])
-
 # edge_detect = cv2.filter2D(src=image, ddepth=-1, kernel=kernel1)
-# # cv2.imshow('Original', image)
-# cv2.imshow('Identity', edge_detect)
 
+# cv2.imshow('Identity', image)
 
-# cv2.waitKey(0) 
-# cv2.destroyAllWindows()
+print(type(image))
+print(np.shape(image))
 
-import timeit
-import numpy as np
-from numpy import random as nprd
-import cupy as cp
-from cupy import random as cprd
+cv2.waitKey(0) 
+cv2.destroyAllWindows()
 
-def cpu():
-    x_cpu = nprd.randint(0, 255,(2000,2000))
-    res = np.dot(x_cpu, x_cpu)
-    print(np.shape(res))
-
-def gpu():
-    x_gpu = cprd.randint(0, 255,(2000,2000))
-    res = cp.dot(x_gpu, x_gpu)
-    print(cp.shape(res))
-
-edge_detect = cv2.filter2D(src=image, ddepth=-1, kernel=kernel1)
-# cv2.imshow('Original', image)
-cv2.imshow('edge_detect', edge_detect)
 

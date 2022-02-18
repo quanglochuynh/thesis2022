@@ -3,26 +3,25 @@ import numpy as np
 import cv2
 from neural_network import MultilayerNeuralNetwork, train_data
 
-image = cv2.imread('/Users/lochuynhquang/Documents/plantvillage/Corn___Common_rust/image (1).JPG')
+# image = cv2.imread('/Users/lochuynhquang/Documents/plantvillage/Corn___Common_rust/image (1).JPG')
+image = cv2.imread('C:\PlantVillage\Corn___healthy\image (1).JPG')
+image = cv2.resize(image, (128,128), interpolation=cv2.INTER_LINEAR)
 cv2.imshow('original', image)
-cv2.waitKey(0)
-# print(np.shape(image))
+
+
+print(image)
 height, width, depth = np.shape(image)
+inp = np.reshape(image, (height*width*depth))
+# print(inp)
 
-im1d = np.reshape(image, -1)
-# print(np.shape(im1d))
 
-im1d = np.divide(im1d,255)
+out = inp/2
+# print(out)
 
-mlnn = MultilayerNeuralNetwork([196608, 196608], 0.1)
+out = np.reshape(out, (128,128,3))
+# print(out)
 
-print('feeding')
-out = mlnn.feed_forward(im1d)
-out = np.multiply(out,255)
-
-imout = np.reshape(out, (256,256,3))
-
-cv2.imshow('fed', imout)
+cv2.imshow('test', np.uint8(out))
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
