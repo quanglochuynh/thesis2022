@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from math import cos
 import cv2
 import numpy as np
@@ -21,19 +22,24 @@ def create_scale_kernel(dw,dh):
                        [0, dh, ty]])
 
 
-def create_skew_kernel(alpha1, alpha2):
-    a2 = alpha1 * 2*np.pi/360
-    a1 = alpha2 * 2*np.pi/360
-    mx = im_wid/2
-    my = im_hei/2
-    alp1 = np.cos(a1)
-    alp2 = np.cos(a2)
-    bet1 = np.sin(a1)
-    bet2 = np.sin(a2)
-    kernel = np.float32([[alp1, bet1, (1-alp1)*mx - bet1*my],
-                         [-bet2, alp2, bet2*mx + (1-alp2)*my]])
-    return kernel
-
+def create_skew_kernel(*args, **kwargs):
+    kwa = args[0]
+    alpha1 = kwa['']
+    if (len(args)==2):
+        alpha2 = args[1]
+        a2 = alpha1 * 2*np.pi/360
+        a1 = alpha2 * 2*np.pi/360
+        mx = im_wid/2
+        my = im_hei/2
+        alp1 = np.cos(a1)
+        alp2 = np.cos(a2)
+        bet1 = np.sin(a1)
+        bet2 = np.sin(a2)
+        kernel = np.float32([[alp1, bet1, (1-alp1)*mx - bet1*my],
+                            [-bet2, alp2, bet2*mx + (1-alp2)*my]])
+        return kernel
+    else:
+        return cv2.getRotationMatrix2D((im_wid/2, im_hei/2), alpha1, 1)
 
 def lin_trans(source, kernel):
     return cv2.warpAffine(source, kernel, (source.shape[0], source.shape[1]))
@@ -51,7 +57,7 @@ img = cv2.resize(img, (256,256))
 
 
 # newimg = lin_trans(img, create_scale_kernel(2,2))
-newimg = lin_trans(img, create_skew_kernel(30, 0))
+newimg = lin_trans(img, create_skew_kernel(90))
 
 cv2.imshow('test', newimg)
 
