@@ -1,19 +1,12 @@
-from asyncio.windows_events import NULL
-from math import cos
 import cv2
 import numpy as np
+from numpy import random as rd
 
 im_wid = 256
 im_hei = 256
 
-scale1 = np.float32([[1.1, 0, -12.8],
-                     [0, 1, 0]])
-
-scale2 = np.float32([[1, 0, 0],
-                     [0, 1.1, -12.8]])
-
-scale3 = np.float32([[1.1, 0, -12.8],
-                        [0, 1.15, -19.2]])
+def random(a,b):
+    return np.round(a + rd.random()*(b-a), 2)
 
 def create_scale_kernel(dw,dh):
     tx = -im_wid*((dw-1)/2)
@@ -21,28 +14,39 @@ def create_scale_kernel(dw,dh):
     return np.float32([[dw, 0, tx],
                        [0, dh, ty]])
 
+def create_skew_kernel(alpha1, alpha2):
+    a2 = alpha1 * 2*np.pi/360
+    a1 = alpha2 * 2*np.pi/360
+    mx = im_wid/2
+    my = im_hei/2
+    alp1 = np.cos(a1)
+    alp2 = np.cos(a2)
+    bet1 = np.sin(a1)
+    bet2 = np.sin(a2)
+    kernel = np.float32([[alp1, bet1, (1-alp1)*mx - bet1*my],
+                        [-bet2, alp2, bet2*mx + (1-alp2)*my]])
+    return kernel
 
-def create_skew_kernel(*args, **kwargs):
-    kwa = args[0]
-    alpha1 = kwa['']
-    if (len(args)==2):
-        alpha2 = args[1]
-        a2 = alpha1 * 2*np.pi/360
-        a1 = alpha2 * 2*np.pi/360
-        mx = im_wid/2
-        my = im_hei/2
-        alp1 = np.cos(a1)
-        alp2 = np.cos(a2)
-        bet1 = np.sin(a1)
-        bet2 = np.sin(a2)
-        kernel = np.float32([[alp1, bet1, (1-alp1)*mx - bet1*my],
-                            [-bet2, alp2, bet2*mx + (1-alp2)*my]])
-        return kernel
-    else:
-        return cv2.getRotationMatrix2D((im_wid/2, im_hei/2), alpha1, 1)
+def create_offset_kernel(dx, dy):
+    return np.float32([[1, 0, dx], [0, 1, dy]])
+
+def horizontal_flip_kernel():
+    return np.float32([[-1, 0, im_wid], [0, 1, 0]])
+
+def vertical_flip_kernel():
+    return np.float32([[1, 0, 0], [0, -1, im_hei]])
+
+def create_rotate_kernel(angle):
+    return create_skew_kernel(angle, angle)
 
 def lin_trans(source, kernel):
     return cv2.warpAffine(source, kernel, (source.shape[0], source.shape[1]))
+
+func = [create_scale_kernel, create_skew_kernel, create_offset_kernel, horizontal_flip_kernel, vertical_flip_kernel, create_rotate_kernel]
+
+
+
+
 
 
 #LINUX
@@ -51,15 +55,45 @@ def lin_trans(source, kernel):
 img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
 
 
-img = cv2.resize(img, (256,256))
+img = cv2.resize(img, (im_wid,im_hei))
 
-# cv2.imshow('original', img)
+cv2.imshow('original', img)
 
 
-# newimg = lin_trans(img, create_scale_kernel(2,2))
-newimg = lin_trans(img, create_skew_kernel(90))
+# newimg = lin_trans(img, create_scale_kernel(2,1))
+# newimg = lin_trans(img, create_skew_kernel(45,45))
+# newimg = lin_trans(img, func[3]())
+for i in range(6):
+    if i==0:
+        rw = random(0.9, 1.2)
+        rh = random(0.9, 1.2)
+        newimg = lin_trans(img, create_scale_kernel(rw, rh))
+        cv2.imshow('scaled, rw = ' + str(rw) + ', rh = ' + str(rh), newimg)
+    elif i==1:
+        ax = random(-15, 15)
+        ay = random(-15, 15)
+        newimg = lin_trans(img, create_skew_kernel(ax, ay))
+        cv2.imshow('skewed, ax = ' + str(ax) + ', ay = ' + str(ay), newimg)
+    elif i==2:
+        dx = random(-20, 20)
+        dy = random(-20, 20)
+        newimg = lin_trans(img, create_offset_kernel(dx, dy))
+        cv2.imshow('offseted, dx = ' + str(dx) + ', dy = ' + str(dy), newimg)
+    elif i==3:
+        newimg = lin_trans(img, horizontal_flip_kernel())
+        cv2.imshow('h_flipped', newimg)
+    elif i==4:
+        newimg = lin_trans(img, vertical_flip_kernel())
+        cv2.imshow('v-flipped', newimg)
+    elif i==5:
+        a = rd.choice([10, 20, -10, -20, 90, -90, 45, -45])
+        newimg = lin_trans(img, create_rotate_kernel(a))
+        cv2.imshow('rotated, a = ' + str(a), newimg)
 
-cv2.imshow('test', newimg)
+
+
+
+
 
 # print(create_skew_kernel(0,-30))
 

@@ -12,19 +12,16 @@ def dsigmoid(x):
 class MultilayerNeuralNetwork:
     def __init__(self, layer_array, learning_rate):
         self.layer_array = layer_array
-
         self.weight_matrix = []
         for i in range(0, len(layer_array)-1):
             m = Matrix(layer_array[i+1], layer_array[i])
             m.randomize()
             self.weight_matrix.append(m)
-        
         self.bias_matrix = []
         for i in range(0, len(layer_array)-1):
             m = Matrix(layer_array[i+1], 1)
             m.randomize()
             self.bias_matrix.append(m)
-            
         self.learning_rate = learning_rate
 
     def feed_forward(self, input_array):
