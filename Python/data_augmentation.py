@@ -1,9 +1,23 @@
+from hashlib import new
 import cv2
 import numpy as np
-from numpy import random as rd
+from numpy import random as rd, uint8
 
 im_wid = 256
 im_hei = 256
+
+def curved(x):
+    return (1/256)* x * x
+
+def image_correct(img, channel):
+    w,h,d = np.shape(img)
+    newimg = np.zeros((w,h,d), dtype=uint8)
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            newimg[i][j] = img[i][j];
+            newimg[i][j][channel] = curved(img[i][j][channel])
+    return newimg
+
 
 def random(a,b):
     return np.round(a + rd.random()*(b-a), 2)
@@ -57,38 +71,44 @@ img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG
 
 img = cv2.resize(img, (im_wid,im_hei))
 
+img = image_correct(img, 1)
+# print(img[100][100][2])
+# print(type(img[1][1][1]))
 cv2.imshow('original', img)
 
+# a = [[100, 128, 276], [0, 256, 0]]
 
+# a = map(curved, a[:][1])
+# print(list(a))
 # newimg = lin_trans(img, create_scale_kernel(2,1))
 # newimg = lin_trans(img, create_skew_kernel(45,45))
 # newimg = lin_trans(img, func[3]())
-for i in range(6):
-    if i==0:
-        rw = random(0.9, 1.2)
-        rh = random(0.9, 1.2)
-        newimg = lin_trans(img, create_scale_kernel(rw, rh))
-        cv2.imshow('scaled, rw = ' + str(rw) + ', rh = ' + str(rh), newimg)
-    elif i==1:
-        ax = random(-15, 15)
-        ay = random(-15, 15)
-        newimg = lin_trans(img, create_skew_kernel(ax, ay))
-        cv2.imshow('skewed, ax = ' + str(ax) + ', ay = ' + str(ay), newimg)
-    elif i==2:
-        dx = random(-20, 20)
-        dy = random(-20, 20)
-        newimg = lin_trans(img, create_offset_kernel(dx, dy))
-        cv2.imshow('offseted, dx = ' + str(dx) + ', dy = ' + str(dy), newimg)
-    elif i==3:
-        newimg = lin_trans(img, horizontal_flip_kernel())
-        cv2.imshow('h_flipped', newimg)
-    elif i==4:
-        newimg = lin_trans(img, vertical_flip_kernel())
-        cv2.imshow('v-flipped', newimg)
-    elif i==5:
-        a = rd.choice([10, 20, -10, -20, 90, -90, 45, -45])
-        newimg = lin_trans(img, create_rotate_kernel(a))
-        cv2.imshow('rotated, a = ' + str(a), newimg)
+# for i in range(2):
+#     if i==0:
+#         rw = random(0.9, 1.2)
+#         rh = random(0.9, 1.2)
+#         newimg = lin_trans(img, create_scale_kernel(rw, rh))
+#         cv2.imshow('scaled, rw = ' + str(rw) + ', rh = ' + str(rh), newimg)
+#     elif i==1:
+#         ax = random(-15, 15)
+#         ay = random(-15, 15)
+#         newimg = lin_trans(img, create_skew_kernel(ax, ay))
+#         cv2.imshow('skewed, ax = ' + str(ax) + ', ay = ' + str(ay), newimg)
+#     elif i==2:
+#         dx = random(-20, 20)
+#         dy = random(-20, 20)
+#         newimg = lin_trans(img, create_offset_kernel(dx, dy))
+#         cv2.imshow('offseted, dx = ' + str(dx) + ', dy = ' + str(dy), newimg)
+#     elif i==3:
+#         newimg = lin_trans(img, horizontal_flip_kernel())
+#         cv2.imshow('h_flipped', newimg)
+#     elif i==4:
+#         newimg = lin_trans(img, vertical_flip_kernel())
+#         cv2.imshow('v-flipped', newimg)
+#     elif i==5:
+#         a = rd.choice([10, 20, -10, -20, 90, -90, 45, -45])
+#         newimg = lin_trans(img, create_rotate_kernel(a))
+#         cv2.imshow('rotated, a = ' + str(a), newimg)
 
 
 
