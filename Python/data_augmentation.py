@@ -71,13 +71,13 @@ img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
 # img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
 
 
-# img = cv2.resize(img, (im_wid,im_hei))
+img = cv2.resize(img, (im_wid,im_hei))
 
 img = image_correct(img, 1)
 # print(img[100][100][2])
 # print(type(img[1][1][1]))
 cv2.imshow('original', img)
-
+cv2.imwrite('/home/flint/Documents/thesis2022/Python/data/corrected.jpg', img);
 # a = [[100, 128, 276], [0, 256, 0]]
 
 # a = map(curved, a[:][1])
