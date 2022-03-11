@@ -5,15 +5,14 @@ from numpy import random as rd, uint8
 
 im_wid = 256
 im_hei = 256
-gm = 0.8
+gm = 0.75
 
 
 def curved(x):
     return 255*np.power(x/255, 1/gm)
 
 def image_correct(img, channel):
-    w,h,d = np.shape(img)
-    newimg = np.zeros((w,h,d), dtype=uint8)
+    newimg = np.zeros(np.shape(img), dtype=uint8)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
             newimg[i][j] = img[i][j];
@@ -30,17 +29,11 @@ def create_scale_kernel(dw,dh):
     return np.float32([[dw, 0, tx],
                        [0, dh, ty]])
 
-def create_skew_kernel(alpha1, alpha2):
-    a2 = alpha1 * 2*np.pi/360
-    a1 = alpha2 * 2*np.pi/360
+def create_skew_kernel(ax, ay):
     mx = im_wid/2
     my = im_hei/2
-    alp1 = np.cos(a1)
-    alp2 = np.cos(a2)
-    bet1 = np.sin(a1)
-    bet2 = np.sin(a2)
-    kernel = np.float32([[alp1, bet1, (1-alp1)*mx - bet1*my],
-                        [-bet2, alp2, bet2*mx + (1-alp2)*my]])
+    kernel = np.float32([[1, ax,  -ax*mx/2],
+                        [ay, 1, -ay*my/2]])
     return kernel
 
 def create_offset_kernel(dx, dy):
@@ -53,7 +46,14 @@ def vertical_flip_kernel():
     return np.float32([[1, 0, 0], [0, -1, im_hei]])
 
 def create_rotate_kernel(angle):
-    return create_skew_kernel(angle, angle)
+    a = angle * 2*np.pi/360
+    mx = im_wid/2
+    my = im_hei/2
+    alp = np.cos(a)
+    bet = np.sin(a)
+    kernel = np.float32([[alp, bet, (1-alp)*mx - bet*my],
+                        [-bet, alp, bet*mx + (1-alp)*my]])
+    return kernel
 
 def lin_trans(source, kernel):
     return cv2.warpAffine(source, kernel, (source.shape[0], source.shape[1]))
@@ -66,18 +66,18 @@ func = [create_scale_kernel, create_skew_kernel, create_offset_kernel, horizonta
 
 
 #LINUX
-img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
+# img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
 #MacOS
 # img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
 
 
-img = cv2.resize(img, (im_wid,im_hei))
+# img = cv2.resize(img, (im_wid,im_hei))
 
-img = image_correct(img, 1)
+# img = image_correct(img, 1)
 # print(img[100][100][2])
 # print(type(img[1][1][1]))
-cv2.imshow('original', img)
-cv2.imwrite('/home/flint/Documents/thesis2022/Python/data/corrected.jpg', img);
+# cv2.imshow('original', img)
+# cv2.imwrite('/home/flint/Documents/thesis2022/Python/data/corrected.jpg', img);
 # a = [[100, 128, 276], [0, 256, 0]]
 
 # a = map(curved, a[:][1])
@@ -119,8 +119,8 @@ cv2.imwrite('/home/flint/Documents/thesis2022/Python/data/corrected.jpg', img);
 
 # print(create_skew_kernel(0,-30))
 
-cv2.waitKey(0);
-cv2.destroyAllWindows();
+# cv2.waitKey(0);
+# cv2.destroyAllWindows();
 
 
 
