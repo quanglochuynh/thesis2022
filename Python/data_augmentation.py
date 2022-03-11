@@ -5,9 +5,11 @@ from numpy import random as rd, uint8
 
 im_wid = 256
 im_hei = 256
+gm = 0.8
+
 
 def curved(x):
-    return (1/256)* x * x
+    return 255*np.power(x/255, 1/gm)
 
 def image_correct(img, channel):
     w,h,d = np.shape(img)
@@ -64,12 +66,12 @@ func = [create_scale_kernel, create_skew_kernel, create_offset_kernel, horizonta
 
 
 #LINUX
-# img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
+img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
 #MacOS
-img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
+# img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
 
 
-img = cv2.resize(img, (im_wid,im_hei))
+# img = cv2.resize(img, (im_wid,im_hei))
 
 img = image_correct(img, 1)
 # print(img[100][100][2])
