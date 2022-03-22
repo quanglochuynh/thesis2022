@@ -1,10 +1,11 @@
-from hashlib import new
 import cv2
 import numpy as np
 from numpy import random as rd, uint8
+import multiprocessing
 
-im_wid = 256
-im_hei = 256
+
+im_wid = 512
+im_hei = 512
 gm = 0.75
 
 
@@ -18,6 +19,14 @@ def image_correct(img, channel):
             newimg[i][j] = img[i][j];
             newimg[i][j][channel] = curved(img[i][j][channel])
     return newimg
+
+def gammaCurve(frame, gm):
+    look_up_table = np.zeros((256,3), dtype = 'uint8')
+    for i in range(256):
+        look_up_table[i][0] = pow(i / 255, 1 / gm) * 255
+        look_up_table[i][1] = i
+        look_up_table[i][2] = i
+    return cv2.LUT(frame, look_up_table)
 
 
 def random(a,b):
@@ -58,69 +67,56 @@ def create_rotate_kernel(angle):
 def lin_trans(source, kernel):
     return cv2.warpAffine(source, kernel, (source.shape[0], source.shape[1]))
 
-func = [create_scale_kernel, create_skew_kernel, create_offset_kernel, horizontal_flip_kernel, vertical_flip_kernel, create_rotate_kernel]
+def augment(source):
+    newimg = source;
+    for i in range(6):
+        if (rd.rand()<0.4):
+            if i==0:
+                rw = random(0.9, 1.2)
+                rh = random(0.9, 1.15)
+                newimg = lin_trans(newimg, create_scale_kernel(rw, rh))
+            elif i==1:
+                ax = random(-0.2, 0.2)
+                ay = random(-0.2, 0.2)
+                newimg = lin_trans(newimg, create_skew_kernel(ax, ay))
+            elif i==2:
+                dx = random(-20, 20)
+                dy = random(-20, 20)
+                newimg = lin_trans(newimg, create_offset_kernel(dx, dy))
+            elif i==3:
+                newimg = lin_trans(newimg, horizontal_flip_kernel())
+            elif i==4:
+                newimg = lin_trans(newimg, vertical_flip_kernel())
+            elif i==5:
+                a = rd.choice([10, 20, -10, -20, 90, -90, 45, -45])
+                newimg = lin_trans(newimg, create_rotate_kernel(a))
+    return cv2.resize(newimg, (256,256))
 
-
-
-
-
-
+classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
+inp_address = 'D:/Thesis_data/Ver4_MedB/'
+img_id = 9
 #LINUX
 # img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
 #MacOS
 # img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
+#Windows
+# img = cv2.imread('C:/Users/quang/Documents/thesis2022/Python/data/bean.JPG')
+img = cv2.imread(inp_address + classes_name[6] + '/image (' + img_id + ').JPG')
+img = cv2.resize(img, (im_wid,im_hei))
 
+img = image_correct(img, 1)
+cv2.imshow('original', img)
 
-# img = cv2.resize(img, (im_wid,im_hei))
-
-# img = image_correct(img, 1)
-# print(img[100][100][2])
-# print(type(img[1][1][1]))
-# cv2.imshow('original', img)
-# cv2.imwrite('/home/flint/Documents/thesis2022/Python/data/corrected.jpg', img);
-# a = [[100, 128, 276], [0, 256, 0]]
-
-# a = map(curved, a[:][1])
-# print(list(a))
-# newimg = lin_trans(img, create_scale_kernel(2,1))
-# newimg = lin_trans(img, create_skew_kernel(45,45))
-# newimg = lin_trans(img, func[3]())
-# for i in range(2):
-#     if i==0:
-#         rw = random(0.9, 1.2)
-#         rh = random(0.9, 1.2)
-#         newimg = lin_trans(img, create_scale_kernel(rw, rh))
-#         cv2.imshow('scaled, rw = ' + str(rw) + ', rh = ' + str(rh), newimg)
-#     elif i==1:
-#         ax = random(-15, 15)
-#         ay = random(-15, 15)
-#         newimg = lin_trans(img, create_skew_kernel(ax, ay))
-#         cv2.imshow('skewed, ax = ' + str(ax) + ', ay = ' + str(ay), newimg)
-#     elif i==2:
-#         dx = random(-20, 20)
-#         dy = random(-20, 20)
-#         newimg = lin_trans(img, create_offset_kernel(dx, dy))
-#         cv2.imshow('offseted, dx = ' + str(dx) + ', dy = ' + str(dy), newimg)
-#     elif i==3:
-#         newimg = lin_trans(img, horizontal_flip_kernel())
-#         cv2.imshow('h_flipped', newimg)
-#     elif i==4:
-#         newimg = lin_trans(img, vertical_flip_kernel())
-#         cv2.imshow('v-flipped', newimg)
-#     elif i==5:
-#         a = rd.choice([10, 20, -10, -20, 90, -90, 45, -45])
-#         newimg = lin_trans(img, create_rotate_kernel(a))
-#         cv2.imshow('rotated, a = ' + str(a), newimg)
+# for j in range(10):
+#     newimg = augment(img)
+#     # cv2.imshow('augmented' + str(j), newimg)
+#     cv2.imwrite(address + classes_name[6] + 'image (' + str(j) + ').JPG',newimg)
 
 
 
 
-
-
-# print(create_skew_kernel(0,-30))
-
-# cv2.waitKey(0);
-# cv2.destroyAllWindows();
+cv2.waitKey(0);
+cv2.destroyAllWindows();
 
 
 
