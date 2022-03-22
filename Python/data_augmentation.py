@@ -1,7 +1,10 @@
+from concurrent.futures import thread
 import cv2
 import numpy as np
 from numpy import random as rd, uint8
 import multiprocessing
+import threading
+import timeit
 
 
 im_wid = 512
@@ -19,15 +22,6 @@ def image_correct(img, channel):
             newimg[i][j] = img[i][j];
             newimg[i][j][channel] = curved(img[i][j][channel])
     return newimg
-
-def gammaCurve(frame, gm):
-    look_up_table = np.zeros((256,3), dtype = 'uint8')
-    for i in range(256):
-        look_up_table[i][0] = pow(i / 255, 1 / gm) * 255
-        look_up_table[i][1] = i
-        look_up_table[i][2] = i
-    return cv2.LUT(frame, look_up_table)
-
 
 def random(a,b):
     return np.round(a + rd.random()*(b-a), 2)
@@ -67,7 +61,8 @@ def create_rotate_kernel(angle):
 def lin_trans(source, kernel):
     return cv2.warpAffine(source, kernel, (source.shape[0], source.shape[1]))
 
-def augment(source):
+def augment(source, address):
+    global n
     newimg = source;
     for i in range(6):
         if (rd.rand()<0.4):
@@ -88,31 +83,44 @@ def augment(source):
             elif i==4:
                 newimg = lin_trans(newimg, vertical_flip_kernel())
             elif i==5:
-                a = rd.choice([10, 20, -10, -20, 90, -90, 45, -45])
+                a = rd.choice([10, 10, 20, 20, -10, -10, -20, -20, 90, -90, 45, -45])
                 newimg = lin_trans(newimg, create_rotate_kernel(a))
-    return cv2.resize(newimg, (256,256))
+    newimg = cv2.resize(newimg, (256,256))
+    cv2.imwrite(address, newimg)
+
+def batch_augment():
+    return 0;
 
 classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
 inp_address = 'D:/Thesis_data/Ver4_MedB/'
+out_address = 'D:/Thesis_data/Augmented/'
+class_id = 6
 img_id = 9
+
 #LINUX
 # img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
 #MacOS
 # img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
 #Windows
 # img = cv2.imread('C:/Users/quang/Documents/thesis2022/Python/data/bean.JPG')
-img = cv2.imread(inp_address + classes_name[6] + '/image (' + img_id + ').JPG')
-img = cv2.resize(img, (im_wid,im_hei))
+starttime = timeit.default_timer()
+n = 1;
+for img_id in range(1,5):
+    img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
+    img = cv2.resize(img, (im_wid,im_hei))
+    img = image_correct(img, 1)
+    # cv2.imshow('original', img)
+    for j in range(3):
+        # augment(img, out_address + classes_name[class_id] + '/image (' + str(n) + ').JPG')
+        p1 = multiprocessing.Process(target=augment, args=(img, out_address + classes_name[class_id] + '/image (' + str(n) + ').JPG'))
+        p2 = multiprocessing.Process(target=augment, args=(img, out_address + classes_name[class_id] + '/image (' + str(n+1) + ').JPG'))
+        p1.start()
+        p2.start()
+        p1.join()
+        p2.join()
+        n = n+2
 
-img = image_correct(img, 1)
-cv2.imshow('original', img)
-
-# for j in range(10):
-#     newimg = augment(img)
-#     # cv2.imshow('augmented' + str(j), newimg)
-#     cv2.imwrite(address + classes_name[6] + 'image (' + str(j) + ').JPG',newimg)
-
-
+print("The time difference is :", timeit.default_timer() - starttime)
 
 
 cv2.waitKey(0);
