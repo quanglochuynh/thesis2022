@@ -1,7 +1,10 @@
+from concurrent.futures import thread
 import cv2
 import numpy as np
 from numpy import random as rd, uint8
 import multiprocessing
+import threading
+import timeit
 
 
 im_wid = 512
@@ -126,6 +129,7 @@ if __name__ == '__main__':
     p2.join()
 
 
+print("The time difference is :", timeit.default_timer() - starttime)
 
 # cv2.waitKey(0);
 # cv2.destroyAllWindows();
