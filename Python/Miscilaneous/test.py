@@ -19,7 +19,7 @@ edge_detect = cv2.filter2D(src=image, ddepth=-1, kernel=kernel2)
 cv2.imshow('Identity', edge_detect)
 # cv2.imwrite('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean2_ED.JPG' ,edge_detect)
 
-# print(type(image))
+print(type(image[1][1][1]))
 # print(np.shape(image))
 
 cv2.waitKey(0) 
