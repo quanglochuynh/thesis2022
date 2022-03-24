@@ -68,7 +68,7 @@ def augment(source, address):
             elif i==5:
                 a = rd.choice([10, 10, 20, 20, -10, -10, -20, -20, 90, -90, 45, -45])
                 newimg = lin_trans(newimg, create_rotate_kernel(a))
-    # newimg = cv2.resize(newimg, (256,256))
+    newimg = cv2.resize(newimg, (256,256))
     cv2.imwrite(address, newimg)
     print('img saved to: ' + address)
 
@@ -81,14 +81,15 @@ img_id = 9
 
 
 def batch_augment(class_id):
-    n = 1;
+    n = 1
     for img_id in range(1,101):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
         # img = cv2.resize(img, (im_wid,im_hei))
-        cv2.imwrite(out_address + classes_name[class_id] + '/image (' + str(n) + ').JPG', cv2.resize(img,(256,256)))
+        cv2.imwrite(out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,(256,256)))
         for k in range(11):
             n = n+1
             augment(img, out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG')
+        n = n+1
             
 
 
@@ -103,27 +104,30 @@ def batch_augment(class_id):
 # batch_augment(0)
 
 if __name__ == '__main__':
-    k = 12
+    k = 7
     p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
-    # p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
-    # p4 = multiprocessing.Process(target=batch_augment, args=(k+3,))
-    # p5 = multiprocessing.Process(target=batch_augment, args=(k+4,))
-    # p6 = multiprocessing.Process(target=batch_augment, args=(k+5,))
+    p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
+    p4 = multiprocessing.Process(target=batch_augment, args=(k+3,))
+    p5 = multiprocessing.Process(target=batch_augment, args=(k+4,))
+    p6 = multiprocessing.Process(target=batch_augment, args=(k+5,))
+    p7 = multiprocessing.Process(target=batch_augment, args=(k+6,))
 
     p1.start()
     p2.start()
-    # p3.start()
-    # p4.start()
-    # p5.start()
-    # p6.start()
+    p3.start()
+    p4.start()
+    p5.start()
+    p6.start()
+    p7.start()
 
     p1.join()
     p2.join()
-    # p3.join()  
-    # p4.join()
-    # p5.join()
-    # p6.join()
+    p3.join()  
+    p4.join()
+    p5.join()
+    p6.join()
+    p7.join()
 
 
 # cv2.waitKey(0);
