@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-from numpy import float32, random as rd, uint8
+from numpy import random as rd, uint8
 import multiprocessing
-import timeit
+# import timeit
 
 im_wid = 512
 im_hei = 512
@@ -37,32 +37,32 @@ def batch_correct(class_id):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
         img = cv2.resize(img, (im_wid,im_hei))
         img = image_correct(img, 1)
-        cv2.imwrite(out_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG', cv2.resize(img,(256,256)))
+        cv2.imwrite(out_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG', img)
         print("Done, "+ classes_name[class_id] +" image "+ str(img_id))
 
 # starttime = timeit.default_timer()
 # batch_correct(0)
 # print("The time difference is :", timeit.default_timer() - starttime)
 
-n = 6
+n = 12
 if __name__ == '__main__':
     p1 = multiprocessing.Process(target=batch_correct, args=(n+0,))
     p2 = multiprocessing.Process(target=batch_correct, args=(n+1,))
-    p3 = multiprocessing.Process(target=batch_correct, args=(n+2,))
-    p4 = multiprocessing.Process(target=batch_correct, args=(n+3,))
-    p5 = multiprocessing.Process(target=batch_correct, args=(n+4,))
-    p6 = multiprocessing.Process(target=batch_correct, args=(n+5,))
+    # p3 = multiprocessing.Process(target=batch_correct, args=(n+2,))
+    # p4 = multiprocessing.Process(target=batch_correct, args=(n+3,))
+    # p5 = multiprocessing.Process(target=batch_correct, args=(n+4,))
+    # p6 = multiprocessing.Process(target=batch_correct, args=(n+5,))
 
     p1.start()
     p2.start()
-    p3.start()
-    p4.start()
-    p5.start()
-    p6.start()
+    # p3.start()
+    # p4.start()
+    # p5.start()
+    # p6.start()
 
     p1.join()
     p2.join()
-    p3.join()
-    p4.join()
-    p5.join()
-    p6.join()
+    # p3.join()
+    # p4.join()
+    # p5.join()
+    # p6.join()
