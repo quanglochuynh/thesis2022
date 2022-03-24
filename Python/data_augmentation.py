@@ -68,7 +68,7 @@ def augment(source, address):
             elif i==5:
                 a = rd.choice([10, 10, 20, 20, -10, -10, -20, -20, 90, -90, 45, -45])
                 newimg = lin_trans(newimg, create_rotate_kernel(a))
-    newimg = cv2.resize(newimg, (256,256))
+    # newimg = cv2.resize(newimg, (256,256))
     cv2.imwrite(address, newimg)
     print('img saved to: ' + address)
 
@@ -84,7 +84,7 @@ def batch_augment(class_id):
     n = 1;
     for img_id in range(1,101):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
-        img = cv2.resize(img, (im_wid,im_hei))
+        # img = cv2.resize(img, (im_wid,im_hei))
         cv2.imwrite(out_address + classes_name[class_id] + '/image (' + str(n) + ').JPG', cv2.resize(img,(256,256)))
         for k in range(11):
             n = n+1
