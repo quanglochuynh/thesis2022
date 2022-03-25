@@ -62,7 +62,7 @@ class GPUMultilayerNeuralNetwork:
             #BACK-propagation
             target_matrix = GPUMatrix.array_2_matrix(target_array)
             error_matrix = GPUMatrix.subtract(target_matrix, feed_result_matrix)
-            print("Error = " + str(np.sum(error_matrix)))
+            print("Error = " + str(cp.sum(error_matrix.data**2)))
             for i in range(len(self.layer_array)-2, -1, -1):
                 gradient_matrix = GPUMatrix.map(layer_result_matrix_array[i+1], dsigmoid)
                 gradient_matrix = GPUMatrix.hadamard(gradient_matrix, error_matrix)
@@ -80,20 +80,20 @@ class GPUMultilayerNeuralNetwork:
         lr = initial_lr
         self.learning_rate = lr
         for i in range(n):
-            print("n = " + str(n))
+            print("n = " + str(i))
             data = rd.choice(test_array)
             self.train(data.input_array, data.target_array)
             self.learning_rate = self.learning_rate * damping_coeficient
         self.learning_rate = original_lr
         #accuracy testing
-        deviation = cp.zeros(cp.shape(test_array[0].target_array))
-        print("Result: ")
-        for i in range(len(test_array)):
-            res = self.feed_forward(test_array[i].input_array)
-            print(res.flatten())
-            error = cp.subtract(test_array[i].target_array, res)
-            deviation =cp.add(deviation, cp.absolute(error))
-        print("\nNet error: " +  str(deviation.flatten().flatten()))
+        # deviation = cp.zeros(cp.shape(test_array[0].target_array))
+        # print("Result: ")
+        # for i in range(len(test_array)):
+        #     res = self.feed_forward(test_array[i].input_array)
+        #     print(res.flatten())
+        #     error = cp.subtract(test_array[i].target_array, res)
+        #     deviation =cp.add(deviation, cp.absolute(error))
+        # print("\nNet error: " +  str(deviation.flatten().flatten()))
     
     def save_weight(self, name):
         filename = "weight/"+name
