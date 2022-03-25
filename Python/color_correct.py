@@ -23,7 +23,7 @@ def image_correct(img, channel):
     newimg = np.zeros(np.shape(img), dtype=uint8)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
-            newimg[i][j] = img[i][j];
+            newimg[i][j] = img[i][j]
             newimg[i][j][channel] = LUT[img[i][j][channel]]
             # newimg[i][j][channel] = curved(img[i][j][channel])
     return newimg
@@ -37,7 +37,7 @@ def batch_correct(class_id):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
         img = cv2.resize(img, (im_wid,im_hei))
         img = image_correct(img, 1)
-        cv2.imwrite(out_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG', img)
+        cv2.imwrite(out_address + classes_name[class_id] + '/image(' + str(img_id) + ').JPG', img)
         print("Done, "+ classes_name[class_id] +" image "+ str(img_id))
 
 # starttime = timeit.default_timer()

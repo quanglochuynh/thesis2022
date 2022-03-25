@@ -3,22 +3,29 @@ import numpy as np
 from numpy import random as rd, uint8
 import multiprocessing
 
-im_wid = 512
-im_hei = 512
+im_wid_input = 512
+im_hei_input = 512
+im_wid_output = 224
+im_hei_output = 224
+
+input_dim = (im_wid_input,im_hei_input)
+output_dim = (im_wid_output,im_hei_output)
+
+
 gm = 0.75
 
 def random(a,b):
     return np.round(a + rd.random()*(b-a), 2)
 
 def create_scale_kernel(dw,dh):
-    tx = -im_wid*((dw-1)/2)
-    ty = -im_hei*((dh-1)/2)
+    tx = -im_wid_input*((dw-1)/2)
+    ty = -im_hei_input*((dh-1)/2)
     return np.float32([[dw, 0, tx],
                        [0, dh, ty]])
 
 def create_skew_kernel(ax, ay):
-    mx = im_wid/2
-    my = im_hei/2
+    mx = im_wid_input/2
+    my = im_hei_input/2
     kernel = np.float32([[1, ax,  -ax*mx/2],
                         [ay, 1, -ay*my/2]])
     return kernel
@@ -27,15 +34,15 @@ def create_offset_kernel(dx, dy):
     return np.float32([[1, 0, dx], [0, 1, dy]])
 
 def horizontal_flip_kernel():
-    return np.float32([[-1, 0, im_wid], [0, 1, 0]])
+    return np.float32([[-1, 0, im_wid_input], [0, 1, 0]])
 
 def vertical_flip_kernel():
-    return np.float32([[1, 0, 0], [0, -1, im_hei]])
+    return np.float32([[1, 0, 0], [0, -1, im_hei_input]])
 
 def create_rotate_kernel(angle):
     a = angle * 2*np.pi/360
-    mx = im_wid/2
-    my = im_hei/2
+    mx = im_wid_input/2
+    my = im_hei_input/2
     alp = np.cos(a)
     bet = np.sin(a)
     kernel = np.float32([[alp, bet, (1-alp)*mx - bet*my],
@@ -68,13 +75,13 @@ def augment(source, address):
             elif i==5:
                 a = rd.choice([10, 10, 20, 20, -10, -10, -20, -20, 90, -90, 45, -45])
                 newimg = lin_trans(newimg, create_rotate_kernel(a))
-    newimg = cv2.resize(newimg, (256,256))
+    newimg = cv2.resize(newimg, output_dim)
     cv2.imwrite(address, newimg)
     print('img saved to: ' + address)
 
 
 classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
-inp_address = 'D:/Thesis_data/Color_Corrected/'
+inp_address = 'D:/Thesis_data/Color_Corrected_512x512/'
 out_address = 'D:/Thesis_data/Augmented/'
 class_id = 6
 img_id = 9
@@ -84,14 +91,13 @@ def batch_augment(class_id):
     n = 1
     for img_id in range(1,101):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
-        # img = cv2.resize(img, (im_wid,im_hei))
-        cv2.imwrite(out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,(256,256)))
+        cv2.imwrite(out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,output_dim))
         for k in range(11):
             n = n+1
             augment(img, out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG')
         n = n+1
             
-
+# cv2.resize()
 
 
 #LINUX
@@ -104,7 +110,7 @@ def batch_augment(class_id):
 # batch_augment(0)
 
 if __name__ == '__main__':
-    k = 7
+    k = 0
     p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
