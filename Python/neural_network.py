@@ -1,10 +1,11 @@
 import numpy as np
 from numpy import random as rd
+import math
 import pickle
 from matrix import Matrix
 
 def sigmoid(x):
-    return 1/(1+np.power(np.e, -x))
+    return 1/(1+pow(2.7182818284, -x))
 
 def dsigmoid(x):
     return x*(1-x)
@@ -75,22 +76,24 @@ class MultilayerNeuralNetwork:
         lr = initial_lr
         self.learning_rate = lr
         for i in range(n):
+            print("n = " + str(i))
             data = rd.choice(test_array)
             self.train(data.input_array, data.target_array)
             self.learning_rate = self.learning_rate * damping_coeficient
         self.learning_rate = original_lr
         #accuracy testing
-        deviation = np.zeros(np.shape(test_array[0].target_array))
-        print("Result: ")
-        for i in range(len(test_array)):
-            res = self.feed_forward(test_array[i].input_array)
-            print(res.flatten())
-            error = np.subtract(test_array[i].target_array, res)
-            deviation =np.add(deviation, np.absolute(error))
-        print("\nNet error: " +  str(deviation.flatten().flatten()))
+        # deviation = np.zeros(np.shape(test_array[0].target_array))
+        # print("Result: ")
+        # for i in range(100):
+        #     data = rd.choice(test_array)
+        #     res = self.feed_forward(test_array[i].input_array)
+        #     # print(res.flatten())
+        #     error = np.subtract(test_array[i].target_array, res)
+        #     deviation =np.add(deviation, np.absolute(error))
+        # print("\nNet error: " +  str(deviation.flatten().flatten()))
     
     def save_weight(self, name):
-        filename = "weight/"+name
+        filename = "/Users/lochuynhquang/Documents/thesis2022/Python/weight/"+name
         outfile = open(filename, 'wb')
         pickle.dump(self, outfile)
 
