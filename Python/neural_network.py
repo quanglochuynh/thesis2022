@@ -93,7 +93,7 @@ class MultilayerNeuralNetwork:
         # print("\nNet error: " +  str(deviation.flatten().flatten()))
     
     def save_weight(self, name):
-        filename = "/Users/lochuynhquang/Documents/thesis2022/Python/weight/"+name
+        filename = "weight/"+name
         outfile = open(filename, 'wb')
         pickle.dump(self, outfile)
 
@@ -102,7 +102,7 @@ class MultilayerNeuralNetwork:
         if (os == "macos"):
             infile = open("/Users/lochuynhquang/Documents/thesis2022/Python/weight/" + filename, 'rb')
         elif (os == "windows"):
-            infile = open("/Users/quang/Documents/thesis2022/Python/weight/" + filename, 'rb')
+            infile = open("C:/Users/quang/Documents/thesis2022/Python/weight/" + filename, 'rb')
         else:
             infile = open("/home/flint/Documents/thesis2022/Python/weight/" + filename, 'rb')
         return pickle.load(infile)
