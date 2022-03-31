@@ -59,7 +59,7 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 # batch_size = 128
 # epochs = 1
 # model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
-model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
+# model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
 
 model = keras.models.load_model("weight/mnist_keras.tf")
 
