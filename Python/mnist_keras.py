@@ -5,7 +5,7 @@ import gzip as gz
 from tensorflow import keras
 from keras import layers
 
-dr = "D:/Thesis_data/MNIST/"
+dr = "D:/Thesis_data/Backups/MNIST/"
 # dir = "/Users/lochuynhquang/Documents/MNIST/"
 weight_path = "weight/mnist_keras.ckpt"
 model_dir = os.path.dirname(weight_path)
@@ -61,11 +61,13 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 # model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 # model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
 
-model = keras.models.load_model("weight/mnist_keras.tf")
+# model = keras.models.load_model("weight/mnist_keras.tf")
 
-# Testing
-score = model.evaluate(x_test, y_test, verbose=0)
-print("Test loss:", score[0])
-print("Test accuracy:", score[1])
+# # Testing
+# score = model.evaluate(x_test, y_test, verbose=0)
+# print("Test loss:", score[0])
+# print("Test accuracy:", score[1])
+
+print(type(x_train[4][5][4][0]))
 
 # model.save('weight/mnist_keras.tf')

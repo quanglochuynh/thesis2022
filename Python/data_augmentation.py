@@ -1,4 +1,5 @@
 import cv2
+from matplotlib import testing
 import numpy as np
 from numpy import random as rd, uint8
 import multiprocessing
@@ -82,35 +83,33 @@ def augment(source, address):
 
 classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
 inp_address = 'D:/Thesis_data/Color_Corrected_512x512/'
-out_address = 'D:/Thesis_data/Augmented/'
+training_address = 'D:/Thesis_data/training_img/'
+testing_address = 'D:/Thesis_data/testing_img/'
 class_id = 6
 img_id = 9
 
 
 def batch_augment(class_id):
     n = 1
-    for img_id in range(1,101):
+    m = 1
+    for img_id in range(1,81):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
-        cv2.imwrite(out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,output_dim))
-        for k in range(11):
+        if img_id<80:
+            cv2.imwrite(training_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,output_dim))
+            for k in range(11):
+                n = n+1
+                augment(img, training_address + classes_name[class_id] + '/image(' + str(n) + ').JPG')
             n = n+1
-            augment(img, out_address + classes_name[class_id] + '/image(' + str(n) + ').JPG')
-        n = n+1
+        else:
+            cv2.imwrite(testing_address + classes_name[class_id] + '/image(' + str(m) + ').JPG', cv2.resize(img,output_dim))
+            for k in range(11):
+                m = m+1
+                augment(img, testing_address + classes_name[class_id] + '/image(' + str(m) + ').JPG')
+            m = m+1
             
-# cv2.resize()
-
-
-#LINUX
-# img = cv2.imread('/home/flint/Documents/thesis2022/Python/data/bean.JPG')
-#MacOS
-# img = cv2.imread('/Users/lochuynhquang/Documents/thesis2022/Python/data/bean.JPG')
-#Windows
-# img = cv2.imread('C:/Users/quang/Documents/thesis2022/Python/data/bean.JPG')
-
-# batch_augment(0)
 
 if __name__ == '__main__':
-    k = 0
+    k = 7
     p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
@@ -135,9 +134,5 @@ if __name__ == '__main__':
     p6.join()
     p7.join()
 
-
-# cv2.waitKey(0);
-# cv2.destroyAllWindows();
-
-
+print("Done!")
 
