@@ -1,4 +1,5 @@
 import pathlib
+from pickletools import optimize
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
@@ -19,16 +20,17 @@ train_ds = keras.utils.image_dataset_from_directory(
 )
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
-test_ds = keras.utils.image_dataset_from_directory(
-    test_dir,
-    label_mode="categorical",
-    shuffle=True,
-    image_size=(img_height, img_width),
-    batch_size=batch_size
-)
-test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
+# test_ds = keras.utils.image_dataset_from_directory(
+#     test_dir,
+#     label_mode="categorical",
+#     shuffle=True,
+#     image_size=(img_height, img_width),
+#     batch_size=batch_size
+# )
+# test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
 input_layer = layers.Input(shape=input_shape)
+input_layer = layers.Rescaling(1/255, offset=0)(input_layer)
 conv1 = layers.Conv2D(64, kernel_size=(6,6), activation="relu")(input_layer)
 pool1 = layers.MaxPooling2D(pool_size=(4,4), strides=4)(conv1)
 conv2 = layers.Conv2D(32, kernel_size=(24,24), activation="relu")(pool1)
@@ -39,4 +41,10 @@ dense2 = layers.Dense(28, activation="sigmoid")(dense1)
 output_layer = layers.Dense(14, activation="softmax")(dense2)
 
 model = keras.Model(input_layer, output_layer)
+# model.summary()
+model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
+epochs = 2
+model.fit(train_ds, epochs = epochs)
+
+model.save('D:/Tensorflow_backups')
