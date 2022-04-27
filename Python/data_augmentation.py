@@ -1,7 +1,6 @@
 import cv2
-from matplotlib import testing
 import numpy as np
-from numpy import random as rd, uint8
+from numpy import random as rd
 import multiprocessing
 
 im_wid_input = 512
@@ -109,7 +108,7 @@ def batch_augment(class_id):
             
 
 if __name__ == '__main__':
-    k = 7
+    k = 0
     p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
