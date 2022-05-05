@@ -73,7 +73,7 @@ def augment(source, address):
             elif i==4:
                 newimg = lin_trans(newimg, vertical_flip_kernel())
             elif i==5:
-                a = rd.choice([10, 10, 20, 20, -10, -10, -20, -20, 90, -90, 45, -45])
+                a = rd.choice([8, 10, 15, 15, -10, -8, -15, -15])
                 newimg = lin_trans(newimg, create_rotate_kernel(a))
     newimg = cv2.resize(newimg, output_dim)
     cv2.imwrite(address, newimg)
@@ -81,9 +81,9 @@ def augment(source, address):
 
 
 classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
-inp_address = 'D:/Thesis_data/Color_Corrected_512x512/'
-training_address = 'D:/Thesis_data/training_img/'
-testing_address = 'D:/Thesis_data/testing_img/'
+inp_address = 'D:/Thesis_data/Backups/Color_Corrected_512x512/'
+training_address = 'D:/Thesis_data/Backups/training_img/'
+testing_address = 'D:/Thesis_data/Backups/testing_img/'
 class_id = 6
 img_id = 9
 
@@ -91,9 +91,9 @@ img_id = 9
 def batch_augment(class_id):
     n = 1
     m = 1
-    for img_id in range(1,81):
+    for img_id in range(1,101):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
-        if img_id<80:
+        if img_id<81:
             cv2.imwrite(training_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,output_dim))
             for k in range(11):
                 n = n+1
@@ -109,6 +109,32 @@ def batch_augment(class_id):
 
 if __name__ == '__main__':
     k = 0
+    p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
+    p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
+    p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
+    p4 = multiprocessing.Process(target=batch_augment, args=(k+3,))
+    p5 = multiprocessing.Process(target=batch_augment, args=(k+4,))
+    p6 = multiprocessing.Process(target=batch_augment, args=(k+5,))
+    p7 = multiprocessing.Process(target=batch_augment, args=(k+6,))
+
+    p1.start()
+    p2.start()
+    p3.start()
+    p4.start()
+    p5.start()
+    p6.start()
+    p7.start()
+
+    p1.join()
+    p2.join()
+    p3.join()  
+    p4.join()
+    p5.join()
+    p6.join()
+    p7.join()
+
+    k = 7
+
     p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
