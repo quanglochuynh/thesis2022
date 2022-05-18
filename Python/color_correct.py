@@ -29,8 +29,8 @@ def image_correct(img, channel):
     return newimg
 
 classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
-inp_address = 'D:/Thesis_data/Ver4_MedB/'
-out_address = 'D:/Thesis_data/Color_Corrected/'
+inp_address = '/Users/lochuynhquang/Desktop/dataset'
+out_address = '/Users/lochuynhquang/Desktop/color_corrected'
 
 def batch_correct(class_id):
     for img_id in range(1,101):
