@@ -2,28 +2,20 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.stats import skew, kurtosis
-from bezier import bezier_point
 
 # gm = 0.75
 # dx = 10
 
-def linear_fn(x, dx):
-    if (x+dx>255):
+def linear_fn(x, c):
+    if (x+c>255):
         return 255
-    return x+dx
+    return x+c
 
-def curved(x, gm):
-    return 255*np.power(x/255, 1/gm)
-    
-def bezier(x1,y1, x2,y2, t):
-    x0 = 0
-    y0 = 0
-    x3 = 255
-    y3 = 255
-    return bezier_point(x0, x1,x2,x3, t)
-    pass
+def curved(x, c):
+    return 255*np.power(x/255, 1/c)
 
-def init_lut(fn=curved, coefficient=0):
+
+def init_lut(fn, coefficient):
     LUT = []
     for i in range(256):
         LUT.append(np.uint8(fn(i, coefficient)))
