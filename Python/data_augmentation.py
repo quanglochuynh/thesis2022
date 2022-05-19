@@ -5,8 +5,8 @@ import multiprocessing
 
 im_wid_input = 512
 im_hei_input = 512
-im_wid_output = 224
-im_hei_output = 224
+im_wid_output = 512
+im_hei_output = 512
 
 input_dim = (im_wid_input,im_hei_input)
 output_dim = (im_wid_output,im_hei_output)
@@ -73,17 +73,17 @@ def augment(source, address):
             elif i==4:
                 newimg = lin_trans(newimg, vertical_flip_kernel())
             elif i==5:
-                a = rd.choice([8, 10, 15, 15, -10, -8, -15, -15])
+                a = rd.choice([8, 4, -4, -8])
                 newimg = lin_trans(newimg, create_rotate_kernel(a))
-    newimg = cv2.resize(newimg, output_dim)
+    # newimg = cv2.resize(newimg, output_dim)
     cv2.imwrite(address, newimg)
     print('img saved to: ' + address)
 
 
 classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
 inp_address = 'D:/Thesis_data/Backups/Color_Corrected_512x512/'
-training_address = 'D:/Thesis_data/Backups/training_img/'
-testing_address = 'D:/Thesis_data/Backups/testing_img/'
+training_address = 'D:/Thesis_data/mlp_data/training_img/'
+testing_address = 'D:/Thesis_data/mlp_data/testing_img/'
 class_id = 6
 img_id = 9
 
@@ -95,43 +95,43 @@ def batch_augment(class_id):
         img = cv2.imread(inp_address + classes_name[class_id] + '/image (' + str(img_id) + ').JPG')
         if img_id<81:
             cv2.imwrite(training_address + classes_name[class_id] + '/image(' + str(n) + ').JPG', cv2.resize(img,output_dim))
-            for k in range(11):
+            for k in range(5):
                 n = n+1
                 augment(img, training_address + classes_name[class_id] + '/image(' + str(n) + ').JPG')
             n = n+1
         else:
             cv2.imwrite(testing_address + classes_name[class_id] + '/image(' + str(m) + ').JPG', cv2.resize(img,output_dim))
-            for k in range(11):
+            for k in range(5):
                 m = m+1
                 augment(img, testing_address + classes_name[class_id] + '/image(' + str(m) + ').JPG')
             m = m+1
             
 
 if __name__ == '__main__':
-    k = 0
-    p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
-    p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
-    p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
-    p4 = multiprocessing.Process(target=batch_augment, args=(k+3,))
-    p5 = multiprocessing.Process(target=batch_augment, args=(k+4,))
-    p6 = multiprocessing.Process(target=batch_augment, args=(k+5,))
-    p7 = multiprocessing.Process(target=batch_augment, args=(k+6,))
+    # k = 0
+    # p1 = multiprocessing.Process(target=batch_augment, args=(k+0,))
+    # p2 = multiprocessing.Process(target=batch_augment, args=(k+1,))
+    # p3 = multiprocessing.Process(target=batch_augment, args=(k+2,))
+    # p4 = multiprocessing.Process(target=batch_augment, args=(k+3,))
+    # p5 = multiprocessing.Process(target=batch_augment, args=(k+4,))
+    # p6 = multiprocessing.Process(target=batch_augment, args=(k+5,))
+    # p7 = multiprocessing.Process(target=batch_augment, args=(k+6,))
 
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
-    p5.start()
-    p6.start()
-    p7.start()
+    # p1.start()
+    # p2.start()
+    # p3.start()
+    # p4.start()
+    # p5.start()
+    # p6.start()
+    # p7.start()
 
-    p1.join()
-    p2.join()
-    p3.join()  
-    p4.join()
-    p5.join()
-    p6.join()
-    p7.join()
+    # p1.join()
+    # p2.join()
+    # p3.join()  
+    # p4.join()
+    # p5.join()
+    # p6.join()
+    # p7.join()
 
     k = 7
 
