@@ -14,25 +14,7 @@ model_dir = pathlib.Path('D:./TF_backup/mlp/mlp.h5')
 model_plot_dir = pathlib.Path('D:./TF_backup/mlp/mlp.png')
 
 # im_dir = pathlib.Path. (train_dir, )
-image = cv2.imread('D:/Thesis_data/mlp_data/training_img/Brittle/image(1).JPG')
+image = cv2.imread('D:/Thesis_data/mlp_data/training_img/Plated_Purple/image(6).JPG')
 # cv2.imshow('abc', image)
-print(select_feature(image))
-# train_ds = keras.utils.image_dataset_from_directory(
-#     train_dir,
-#     labels="inferred",
-#     label_mode="categorical",
-#     seed=665,
-#     shuffle=True,
-#     validation_split=0.25,
-#     subset="training",
-#     image_size=(img_height, img_width),
-#     batch_size=batch_size
-# )
-# train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+ft1, ft2, glcm1, glcm2, glcm3, glcm4 = select_feature(image)
 
-# #MODEL
-# input_layer = layers.Input(shape=input_shape)
-# dense1 = layers.Dense()
-
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()

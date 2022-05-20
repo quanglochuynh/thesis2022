@@ -1,12 +1,35 @@
 import cv2
+from matplotlib.cbook import flatten
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+from scipy.fft import idst 
 from scipy.stats import skew, kurtosis
 from skimage.feature import graycomatrix, graycoprops
 import statistics as st
 
 # gm = 0.75
 # dx = 10
+
+def partition(l, r, nums):
+    # Last element will be the pivot and the first element the pointer
+    pivot, ptr = nums[r][1], l
+    for i in range(l, r):
+        if nums[i][1] >= pivot:
+            # Swapping values smaller than the pivot to the front
+            nums[i], nums[ptr] = nums[ptr], nums[i]
+            ptr += 1
+    # Finally swappping the last element with the pointer indexed number
+    nums[ptr], nums[r] = nums[r], nums[ptr]
+    return ptr
+
+def quicksort(l, r, nums):
+    if len(nums) == 1:  # Terminating Condition for recursion. VERY IMPORTANT!
+        return nums
+    if l < r:
+        pi = partition(l, r, nums)
+        quicksort(l, pi-1, nums)  # Recursively sorting the left values
+        quicksort(pi+1, r, nums)  # Recursively sorting the right values
+    return nums
 
 def linear_fn(x, c):
     if (x+c>255):
@@ -94,24 +117,28 @@ def geometry_analysis(cnt):
         (centerXCoordinate, centerYCoordinate), eq_radius = cv2.minEnclosingCircle(cnt)
         # cv2.circle(image, (int(centerXCoordinate), int(centerYCoordinate)), int(eq_radius), (0,0,255), 2)
         # cv2.circle(image, (int(centerXCoordinate), int(centerYCoordinate)), 10, (255,0,0), 5)
+        # print('CVH', len(convexHull))
+        if (len(convexHull)>4):
+            ellipse = cv2.fitEllipse(convexHull)
+            (eX, eY), (alX, alY), orientation = ellipse
+            foci_distance = np.sqrt((alX/2)**2 + (alY/2)**2)
+            ellipse_eccentricity = max(alX, alY)/foci_distance
+            # cv2.ellipse(image, center=(int(eX),int(eY)), axes=(int(alX/2),int(alY/2)), angle=int(orientation), startAngle=0, endAngle=360, color=(255, 255, 255), thickness=2)
 
-        ellipse = cv2.fitEllipse(convexHull)
-        (eX, eY), (alX, alY), orientation = ellipse
-        foci_distance = np.sqrt((alX/2)**2 + (alY/2)**2)
-        ellipse_eccentricity = max(alX, alY)/foci_distance
-        # cv2.ellipse(image, center=(int(eX),int(eY)), axes=(int(alX/2),int(alY/2)), angle=int(orientation), startAngle=0, endAngle=360, color=(255, 255, 255), thickness=2)
+            moment = cv2.moments(cnt)
+            real_area = moment['m00']
+            if (real_area<1):return [0]
+            centroidXCoordinate = int(moment['m10'] / real_area)
+            centroidYCoordinate = int(moment['m01'] / real_area)
+            # cv2.circle(image, (int(centroidXCoordinate), int(centroidYCoordinate)), 10, (0,255,0), 5)
 
-        moment = cv2.moments(cnt)
-        real_area = moment['m00']
-        centroidXCoordinate = int(moment['m10'] / real_area)
-        centroidYCoordinate = int(moment['m01'] / real_area)
-        # cv2.circle(image, (int(centroidXCoordinate), int(centroidYCoordinate)), 10, (0,255,0), 5)
-
-        solidity = real_area/convex_area
-        bb_ratio = real_area/(w*h)
-        eccentricity_distance = np.sqrt( (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2 )
-        return x,y,w,h,real_area, perimeter, alX, alY, orientation, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance
-
+            solidity = real_area/convex_area
+            bb_ratio = real_area/(w*h)
+            eccentricity_distance = np.sqrt( (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2 )
+            return x,y,w,h,real_area, perimeter, alX, alY, orientation, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance
+        else:
+            # print('CLGT!!!!!!!!!!!!')
+            return [0]
 
 def draw_bb(im,data):
     res = np.copy(im)
@@ -155,6 +182,7 @@ def hsv_contour_extract(image_hsv):
     ret, thresh_h = cv2.threshold(h, 120,255,cv2.THRESH_TOZERO)
     # ret, thresh_h = cv2.threshold(h, 200,255,cv2.THRESH_TOZERO_INV)
     ret, thresh_v = cv2.threshold(v, 30,255,cv2.THRESH_TOZERO_INV)
+    ret, thresh_v2 = cv2.threshold(v, 192,255,cv2.THRESH_TOZERO)
 
     ct_H = []
     ct_V = []
@@ -162,7 +190,7 @@ def hsv_contour_extract(image_hsv):
     for cnt in contour_H:
         convexHull = cv2.convexHull(cnt)
         convexhull_area = cv2.contourArea(convexHull)
-        if (convexhull_area>64) and (convexhull_area<400000):
+        if (convexhull_area>100) and (convexhull_area<400000):
             perimeter = cv2.arcLength(cnt,True)
             approximatedShape = cv2.approxPolyDP(cnt, 0.004 * perimeter, True)
             # cv2.drawContours(origin_rgb, [approximatedShape], -1, (255, 255, 0), 2)
@@ -172,7 +200,17 @@ def hsv_contour_extract(image_hsv):
     for cnt in contour_V:
         convexHull = cv2.convexHull(cnt)
         convexhull_area = cv2.contourArea(convexHull)
-        if (convexhull_area>64) and (convexhull_area<400000):
+        if (convexhull_area>100) and (convexhull_area<400000):
+            perimeter = cv2.arcLength(cnt,True)
+            approximatedShape = cv2.approxPolyDP(cnt, 0.001 * perimeter, True)
+            # cv2.drawContours(origin_rgb, [approximatedShape], -1, (0, 255, 255), 1)
+            ct_V.append(approximatedShape)
+
+    contour_V ,h = cv2.findContours(thresh_v2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for cnt in contour_V:
+        convexHull = cv2.convexHull(cnt)
+        convexhull_area = cv2.contourArea(convexHull)
+        if (convexhull_area>100) and (convexhull_area<200000):
             perimeter = cv2.arcLength(cnt,True)
             approximatedShape = cv2.approxPolyDP(cnt, 0.001 * perimeter, True)
             # cv2.drawContours(origin_rgb, [approximatedShape], -1, (0, 255, 255), 1)
@@ -206,16 +244,43 @@ def select_feature(image):
 
     geometry_feature = []
     statistic_feature = []
+    selected_geometry_feature = [overall_geometry]
+    selected_statistic_feature = [overall_statistic]
     ct_H, ct_V = hsv_contour_extract(image_hsv)
+    area = []
+    id = 0
     for cnt in ct_H:
         (x,y,w,h) = cv2.boundingRect(cnt)
-        geometry_feature.append(geometry_analysis(cnt))
-        statistic_feature.append(statistic_analysis(image_rgb[y:y+h,x:x+w]))
+        geo = geometry_analysis(cnt)
+        # print(geo)
+        if len(geo)>1:
+            area.append((id,w*h))
+            id = id+1
+            geometry_feature.append(geo)
+            statistic_feature.append(statistic_analysis(image_rgb[y:y+h,x:x+w]))
 
     for cnt in ct_V:
         (x,y,w,h) = cv2.boundingRect(cnt)
-        geometry_feature.append(geometry_analysis(cnt))
-        statistic_feature.append(statistic_analysis(image_rgb[y:y+h,x:x+w]))
+        geo = geometry_analysis(cnt)
+        # print(geo)
+        if len(geo)>1:
+            area.append((id,w*h))
+            id = id+1
+            geometry_feature.append(geo)
+            statistic_feature.append(statistic_analysis(image_rgb[y:y+h,x:x+w]))
+
+    area = quicksort(0, len(area)-1, area)
+    # print('LEN=',len(geometry_feature))
+    if (len(geometry_feature)>10):
+        for i in range(10):
+            # print(area[i][0], area[i][1])
+            selected_geometry_feature.append(geometry_feature[area[i][0]])
+            selected_statistic_feature.append(statistic_feature[area[i][0]])
+    else:
+        for i in range(10):
+            id = np.random.randint(0, len(area))
+            selected_geometry_feature.append(geometry_feature[id])
+            selected_statistic_feature.append(statistic_feature[id])
 
     val = CLAHE(val, grey=True)
     val = cv2.resize(val, (128,256))
@@ -228,4 +293,5 @@ def select_feature(image):
     glcm_dissimilarity = graycoprops(glcm, 'dissimilarity')
     glcm_energy = graycoprops(glcm, 'energy')
     glcm_correlation = graycoprops(glcm, 'correlation')
-    return overall_geometry, overall_statistic, geometry_feature, statistic_feature, glcm_cons, glcm_dissimilarity, glcm_energy, glcm_correlation
+
+    return np.concatenate([np.array(selected_geometry_feature).flatten(), np.array(selected_statistic_feature).flatten(), glcm_cons.flatten(), glcm_dissimilarity.flatten(), glcm_energy.flatten(), glcm_correlation.flatten()], axis=None)
