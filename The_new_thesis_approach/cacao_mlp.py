@@ -1,20 +1,70 @@
 import pathlib
-import cv2
-# from keras import layers
-# import numpy as np
-# import matplotlib.pyplot as plt
+import tensorflow as tf
+import keras
+from keras import layers
+import numpy as np
+import matplotlib.pyplot as plt
 from image_extractor import select_feature
 
-# input_shape = (img_width, img_height, 3)
-batch_size = 16
-train_dir = pathlib.Path('D:/Thesis_data/mlp_data/training_img')
-test_dir  = pathlib.Path('D:/Thesis_data/mlp_data/testing_img')
+input_shape = (394,)
+batch_size = 32
+x_train_dir = pathlib.Path('D:/Thesis_data/mlp_data/X_train.npz')
+y_train_dir = pathlib.Path('D:/Thesis_data/mlp_data/Y_train.npz')
+x_test_dir  = pathlib.Path('D:/Thesis_data/mlp_data/X_test.npz')
+y_test_dir  = pathlib.Path('D:/Thesis_data/mlp_data/Y_test.npz')
 checkpoint_dir = pathlib.Path('D:./TF_checkpoint/cacao_CNN/weight/')
 model_dir = pathlib.Path('D:./TF_backup/mlp/mlp.h5')
 model_plot_dir = pathlib.Path('D:./TF_backup/mlp/mlp.png')
 
-# im_dir = pathlib.Path. (train_dir, )
-image = cv2.imread('D:/Thesis_data/mlp_data/training_img/Plated_Purple/image(6).JPG')
-# cv2.imshow('abc', image)
-ft1, ft2, glcm1, glcm2, glcm3, glcm4 = select_feature(image)
 
+y_train = np.asarray(np.load(x_train_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
+x_train = np.asarray(np.load(y_train_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
+x_test = np.asarray(np.load(x_test_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
+y_test = np.asarray(np.load(y_test_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
+
+# print(np.shape(x_train))
+# print(np.shape(y_train))
+# print(np.shape(x_test))
+# print(np.shape(y_test))
+
+model_checkpoint = keras.callbacks.ModelCheckpoint(
+    checkpoint_dir,
+    save_weights_only=True,
+    monitor='val_accuracy',
+    mode='max',
+)
+
+# Define model
+input_layer = layers.Input(shape=input_shape)
+den1 = layers.Dense(400, activation='relu')(input_layer)
+drop1 = layers.Dropout(0.1)(den1)
+den2 = layers.Dense(196, activation='relu')(drop1)
+drop2 = layers.Dropout(0.1)(den2)
+den3 = layers.Dense(112, activation='relu')(drop2)
+drop3 = layers.Dropout(0.1)(den3)
+den4 = layers.Dense(14, activation='softmax')(drop3)
+
+model = keras.Model(input_layer, den4)
+
+opt = tf.keras.optimizers.SGD(
+    learning_rate=0.01,
+    momentum=0.01,
+    nesterov=True,
+    name='SGD',
+)
+
+model.compile(
+    optimizer=opt, 
+    loss="categorical_crossentropy", 
+    metrics=["accuracy"]
+    )
+
+model.summary()
+
+epochs = 40
+model.fit(x_train, y_train, batch_size=batch_size, shuffle=True, epochs=epochs, callbacks=[model_checkpoint])
+model.save(model_dir)
+
+score = model.evaluate(x_test, y_test, verbose=1)
+print("Test loss:", score[0])
+print("Test accuracy:", score[1])
