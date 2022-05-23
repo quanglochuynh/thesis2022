@@ -246,7 +246,7 @@ def select_feature(image):
     statistic_feature = []
     selected_geometry_feature = [overall_geometry]
     selected_statistic_feature = [overall_statistic]
-    ct_H, ct_V = hsv_contour_extract(image_hsv)
+    ct_H, ct_V = hsv_contour_extract(image_hsv_croped)
     area = []
     id = 0
     for cnt in ct_H:
@@ -285,10 +285,11 @@ def select_feature(image):
     val = CLAHE(val, grey=True)
     val = cv2.resize(val, (128,256))
 
-    bins = np.linspace(0, 256, 9)
+    bins = np.linspace(0, 256, 17)
     digitize = np.digitize(val, bins) - 1
 
-    glcm = graycomatrix(digitize, [1,3,5,7], [0, np.pi/4, np.pi/2, 3*np.pi/4], 8, True, True)
+    glcm = graycomatrix(digitize, [1,3,5,7], [0, np.pi/4, np.pi/2, 3*np.pi/4], 16, True, True)
+    glcm = glcm[1:15,1:15,:,:];
     glcm_cons = graycoprops(glcm, 'contrast')
     glcm_dissimilarity = graycoprops(glcm, 'dissimilarity')
     glcm_energy = graycoprops(glcm, 'energy')
