@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from image_extractor import select_feature
 
 input_shape = (394,)
-batch_size = 32
+batch_size = 64
 x_train_dir = pathlib.Path('D:/Thesis_data/mlp_data/X_train.npz')
 y_train_dir = pathlib.Path('D:/Thesis_data/mlp_data/Y_train.npz')
 x_test_dir  = pathlib.Path('D:/Thesis_data/mlp_data/X_test.npz')
@@ -22,6 +22,8 @@ x_train = np.asarray(np.load(y_train_dir, allow_pickle=True)['arr_0'], dtype=np.
 x_test = np.asarray(np.load(x_test_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
 y_test = np.asarray(np.load(y_test_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
 
+input_shape = (len(x_train[0]),)
+
 # print(np.shape(x_train))
 # print(np.shape(y_train))
 # print(np.shape(x_test))
@@ -34,34 +36,35 @@ model_checkpoint = keras.callbacks.ModelCheckpoint(
     mode='max',
 )
 
-# Define model
-input_layer = layers.Input(shape=input_shape)
-den1 = layers.Dense(400, activation='relu')(input_layer)
-drop1 = layers.Dropout(0.1)(den1)
-den2 = layers.Dense(196, activation='relu')(drop1)
-drop2 = layers.Dropout(0.1)(den2)
-den3 = layers.Dense(112, activation='relu')(drop2)
-drop3 = layers.Dropout(0.1)(den3)
-den4 = layers.Dense(14, activation='softmax')(drop3)
+# # Define model
+# input_layer = layers.Input(shape=input_shape)
+# den1 = layers.Dense(788, activation='sigmoid')(input_layer)
+# drop1 = layers.Dropout(0.1)(den1)
+# den2 = layers.Dense(788, activation='sigmoid')(drop1)
+# drop2 = layers.Dropout(0.1)(den2)
+# den3 = layers.Dense(448, activation='sigmoid')(drop2)
+# drop3 = layers.Dropout(0.1)(den3)
+# den4 = layers.Dense(14, activation='sigmoid')(drop3)
 
-model = keras.Model(input_layer, den4)
+# model = keras.Model(input_layer, den4)
 
-opt = tf.keras.optimizers.SGD(
-    learning_rate=0.01,
-    momentum=0.01,
-    nesterov=True,
-    name='SGD',
-)
+# opt = tf.keras.optimizers.SGD(
+#     learning_rate=0.001,
+#     momentum=0.0,
+#     nesterov=True,
+#     name='SGD',
+# )
 
-model.compile(
-    optimizer=opt, 
-    loss="categorical_crossentropy", 
-    metrics=["accuracy"]
-    )
+# model.compile(
+#     optimizer=opt, 
+#     loss="categorical_crossentropy", 
+#     metrics=["accuracy"]
+#     )
+model = keras.models.load_model(model_dir)
 
 model.summary()
 
-epochs = 40
+epochs = 100
 model.fit(x_train, y_train, batch_size=batch_size, shuffle=True, epochs=epochs, callbacks=[model_checkpoint])
 model.save(model_dir)
 
