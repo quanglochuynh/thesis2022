@@ -60,8 +60,11 @@ def hsv_filter(im):
     sp = np.shape(image)
     for i in range(sp[0]):
         for j in range(sp[1]):
-            if image[i][j][2]<25:
+            if image[i][j][2]<40:
                 image[i][j] = np.array([0, 0, 0])
+    # h,s,v = cv2.split(im)
+    # th_v = cv2.threshold(v, 25, 255, cv2.THRESH_TOZERO)
+
     return image 
 
 def histogram_analysis(im, plot=False):
@@ -145,7 +148,7 @@ def draw_bb(im,data):
     (x,y,w,h) = data
     return cv2.rectangle(res,(x,y),(x+w,y+h),(200,0,0),2)
 
-def CLAHE(grey_img, grey=False):
+def HE(grey_img, grey=False):
     if grey==False:
         grey_img = cv2.cvtColor(grey_img, cv2.COLOR_BGR2GRAY)
     hist,bins = np.histogram(grey_img.flatten(),256,[0,256])
@@ -156,12 +159,13 @@ def CLAHE(grey_img, grey=False):
     return cdf[grey_img]
 
 def bounding_box(image):
-    contours, hierarchy = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    ret, im = cv2.threshold(image, 20, 255, cv2.THRESH_BINARY)
+    contours, hie = cv2.findContours(im, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         x,y,w,h = cv2.boundingRect(cnt)
         if (w>50) and (w>100):
             return x,y,w,h,cnt
-    
+    return 0,0,0,0,[]
 
 def seperate_chanel(image, plot=False):
     h,s,v = image[:,:,0], image[:,:,1], image[:,:,2]
@@ -178,7 +182,9 @@ def seperate_chanel(image, plot=False):
 
 def hsv_contour_extract(image_hsv):
     h,s,v = seperate_chanel(image_hsv, plot=False)
-    v = CLAHE(v, grey=True)
+    # v = CLAHE(v, grey=True)
+    clahe_op = cv2.createCLAHE(4, (8,8))
+    v = clahe_op.apply(v)
     ret, thresh_h = cv2.threshold(h, 120,255,cv2.THRESH_TOZERO)
     # ret, thresh_h = cv2.threshold(h, 200,255,cv2.THRESH_TOZERO_INV)
     ret, thresh_v = cv2.threshold(v, 30,255,cv2.THRESH_TOZERO_INV)
@@ -223,30 +229,47 @@ def aspect_crop(image, x,y,w,h):
     return image[y:y+h,x+c:x+max(w,int(h/2))+c]
 
 def preprocess_hsv(image):
-    lut1 = init_lut(fn=linear_fn, coefficient=10)
+    lut1 = init_lut(fn=linear_fn, coefficient=15)
     lut2 = init_lut(fn=curved, coefficient=1.5)
     image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
     image_hsv = apply_lut(image_hsv, 1, lut1)   #tang Sat
     image_hsv = hsv_filter(image_hsv)
-    return image_hsv
+    x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
+    ellipse = cv2.fitEllipse(cnt)
+    (eX, eY), (alX, alY), orientation = ellipse
+    print('ori = ', orientation)
+    if orientation>90:
+        orientation = -180+orientation
+    a = orientation * 2*np.pi/360
+    im_wid_input, im_hei_input = np.shape(image[:,:,2])
+    mx = im_wid_input/2
+    my = im_hei_input/2
+    alp = np.cos(a)
+    bet = np.sin(a)
+    kernel = np.float32([[alp, bet, (1-alp)*mx - bet*my],
+                        [-bet, alp, bet*mx + (1-alp)*my]])
+    image_hsv = cv2.warpAffine(image_hsv, kernel, (im_wid_input, im_hei_input))
+    x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
+    image_hsv_croped = aspect_crop(image_hsv, x,y,w,h)
+    return image_hsv_croped, cnt
 
 def select_feature(image):
-    image_hsv = preprocess_hsv(image)
+    image_hsv, out_cnt = preprocess_hsv(image)
     image_rgb = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
-    x,y,w,h,out_cnt = bounding_box(image_hsv[:,:,2])
+    # x,y,w,h,out_cnt = bounding_box(image_hsv[:,:,2])
 
     overall_geometry = geometry_analysis(out_cnt)
     overall_statistic = statistic_analysis(image_rgb[y:y+h,x:x+w])
 
-    image_hsv_croped = aspect_crop(image_hsv, x,y,w,h)
-    hue,sat,val = seperate_chanel(image_hsv_croped, plot=False)
+    # image_hsv_croped = aspect_crop(image_hsv, x,y,w,h)
+    hue,sat,val = seperate_chanel(image_hsv, plot=False)
 
     geometry_feature = []
     statistic_feature = []
     selected_geometry_feature = [overall_geometry]
     selected_statistic_feature = [overall_statistic]
-    ct_H, ct_V = hsv_contour_extract(image_hsv_croped)
+    ct_H, ct_V = hsv_contour_extract(image_hsv)
     area = []
     id = 0
     for cnt in ct_H:
@@ -282,14 +305,16 @@ def select_feature(image):
             selected_geometry_feature.append(geometry_feature[id])
             selected_statistic_feature.append(statistic_feature[id])
 
-    val = CLAHE(val, grey=True)
+    # val = CLAHE(val, grey=True)
+    clahe_op = cv2.createCLAHE(4, (8,8))
+    val = clahe_op.apply(val)
     val = cv2.resize(val, (128,256))
 
-    bins = np.linspace(0, 256, 17)
+    bins = np.linspace(0, 256, 33)
     digitize = np.digitize(val, bins) - 1
 
-    glcm = graycomatrix(digitize, [1,3,5,7], [0, np.pi/4, np.pi/2, 3*np.pi/4], 16, True, True)
-    glcm = glcm[1:15,1:15,:,:];
+    glcm = graycomatrix(digitize, [5,7,9,11], [0, np.pi/4, np.pi/2, 3*np.pi/4], 32, True, False)
+    glcm = glcm[1:31,1:31,:,:];
     glcm_cons = graycoprops(glcm, 'contrast')
     glcm_dissimilarity = graycoprops(glcm, 'dissimilarity')
     glcm_energy = graycoprops(glcm, 'energy')

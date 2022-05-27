@@ -74,42 +74,44 @@ model_checkpoint = keras.callbacks.ModelCheckpoint(
 
 model = keras.models.load_model(model_dir)
 model.summary()
+tf.keras.utils.plot_model(model, to_file=model_plot_dir, show_shapes=True)
+
 
 
 # Train model
-epochs = 8
-model.fit(train_ds, epochs=epochs, callbacks=[model_checkpoint])
-model.save(model_dir)
+# epochs = 8
+# model.fit(train_ds, epochs=epochs, callbacks=[model_checkpoint])
+# model.save(model_dir)
 
 
 # Test model
-test_ds = keras.utils.image_dataset_from_directory(
-    test_dir,
-    label_mode="categorical",
-    shuffle=True,
-    image_size=(img_height, img_width),
-    batch_size=batch_size
-)
-test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
+# test_ds = keras.utils.image_dataset_from_directory(
+#     test_dir,
+#     label_mode="categorical",
+#     shuffle=True,
+#     image_size=(img_height, img_width),
+#     batch_size=batch_size
+# )
+# test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
 
-score = model.evaluate(test_ds, verbose=1)
-print("Test loss:", score[0])
-print("Test accuracy:", score[1])
+# score = model.evaluate(test_ds, verbose=1)
+# print("Test loss:", score[0])
+# print("Test accuracy:", score[1])
 
-# draw confusion matrix
-i = 0
-cmatrix = np.zeros((4,4), dtype=np.int16)
-for img,lab in test_ds.take(20):
-    result = model.predict(img, use_multiprocessing=True)
-    for j in range(np.size(result,axis=0)):
-        id1 = np.argmax(result[j])
-        id2 = np.argmax(lab[j])
-        # print(result[j], lab[j].numpy())
-        cmatrix[id1][id2] = cmatrix[id1][id2] + 1
-cmatrix = np.absolute(cmatrix)
-print(repr(cmatrix))
+# # draw confusion matrix
+# i = 0
+# cmatrix = np.zeros((4,4), dtype=np.int16)
+# for img,lab in test_ds.take(20):
+#     result = model.predict(img, use_multiprocessing=True)
+#     for j in range(np.size(result,axis=0)):
+#         id1 = np.argmax(result[j])
+#         id2 = np.argmax(lab[j])
+#         # print(result[j], lab[j].numpy())
+#         cmatrix[id1][id2] = cmatrix[id1][id2] + 1
+# cmatrix = np.absolute(cmatrix)
+# print(repr(cmatrix))
 
-fig = plt.figure(figsize=(6,6))
-plt.imshow(cmatrix)
-plt.title("Plot 2D array")
-plt.show()
+# fig = plt.figure(figsize=(6,6))
+# plt.imshow(cmatrix)
+# plt.title("Plot 2D array")
+# plt.show()
