@@ -228,10 +228,10 @@ def aspect_crop(image, x,y,w,h):
     c = int((w-max(int(h/2),w))/2)
     return image[y:y+h,x+c:x+max(w,int(h/2))+c]
 
-def preprocess_hsv(image):
+def preprocess_hsv(image_bgr):
     lut1 = init_lut(fn=linear_fn, coefficient=15)
     lut2 = init_lut(fn=curved, coefficient=1.5)
-    image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
     image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
     image_hsv = apply_lut(image_hsv, 1, lut1)   #tang Sat
     image_hsv = hsv_filter(image_hsv)
@@ -242,7 +242,7 @@ def preprocess_hsv(image):
     if orientation>90:
         orientation = -180+orientation
     a = orientation * 2*np.pi/360
-    im_wid_input, im_hei_input = np.shape(image[:,:,2])
+    im_wid_input, im_hei_input = np.shape(image_bgr[:,:,2])
     mx = im_wid_input/2
     my = im_hei_input/2
     alp = np.cos(a)
