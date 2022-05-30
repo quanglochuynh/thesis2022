@@ -104,41 +104,27 @@ def statistic_analysis(image):
         [stdR, stdG, stdB],
         [skewR, skewG, skewB],
         [kurtosisR, kurtosisG, kurtosisB]
-    ], dtype=object).flatten()
+    ], dtype=np.float32).flatten()
 
-def geometry_analysis(cnt):
+def geometry_analysis(cnt, ellipse):
         x,y,w,h = cv2.boundingRect(cnt)
         convexHull = cv2.convexHull(cnt)
         convex_area = cv2.contourArea(convexHull)
-        # cv2.drawContours(image, [convexHull], -1, (255, 0, 0), 2)
         perimeter = cv2.arcLength(cnt,True)
-        # approximatedShape = cv2.approxPolyDP(cnt, 0.002 * perimeter, True)
-        # print(perimeter, approximatedShape)
-        # cv2.drawContours(image, [approximatedShape], -1, (255, 255, 0), 2)
         (centerXCoordinate, centerYCoordinate), eq_radius = cv2.minEnclosingCircle(cnt)
-        # cv2.circle(image, (int(centerXCoordinate), int(centerYCoordinate)), int(eq_radius), (0,0,255), 2)
-        # cv2.circle(image, (int(centerXCoordinate), int(centerYCoordinate)), 10, (255,0,0), 5)
-        # print('CVH', len(convexHull))
-        if (len(convexHull)>4):
-            ellipse = cv2.fitEllipse(convexHull)
-            (eX, eY), (alX, alY), orientation = ellipse
-            foci_distance = np.sqrt((alX/2)**2 + (alY/2)**2)
-            ellipse_eccentricity = max(alX, alY)/foci_distance
-            # cv2.ellipse(image, center=(int(eX),int(eY)), axes=(int(alX/2),int(alY/2)), angle=int(orientation), startAngle=0, endAngle=360, color=(255, 255, 255), thickness=2)
+        (eX, eY), (alX, alY), orientation = ellipse
+        foci_distance = np.sqrt((alX/2)**2 + (alY/2)**2)
+        ellipse_eccentricity = max(alX, alY)/foci_distance
+        moment = cv2.moments(cnt)
+        real_area = moment['m00']
+        if (real_area<1):return [0]
+        centroidXCoordinate = int(moment['m10'] / real_area)
+        centroidYCoordinate = int(moment['m01'] / real_area)
+        solidity = real_area/convex_area
+        bb_ratio = real_area/(w*h)
+        eccentricity_distance = np.sqrt( (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2 )
+        return [x,y,w,h,real_area, perimeter, alX, alY, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance]
 
-            moment = cv2.moments(cnt)
-            real_area = moment['m00']
-            if (real_area<1):return [0]
-            centroidXCoordinate = int(moment['m10'] / real_area)
-            centroidYCoordinate = int(moment['m01'] / real_area)
-            # cv2.circle(image, (int(centroidXCoordinate), int(centroidYCoordinate)), 10, (0,255,0), 5)
-
-            solidity = real_area/convex_area
-            bb_ratio = real_area/(w*h)
-            eccentricity_distance = np.sqrt( (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2 )
-            return x,y,w,h,real_area, perimeter, alX, alY, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance
-        else:
-            return [0]
 
 def draw_bb(im,data):
     res = np.copy(im)
@@ -175,7 +161,6 @@ def seperate_chanel(image, plot=False):
         plt.imshow(v)
         plt.show()
     return h,s,v
-
 
 def hsv_contour_extract(image_hsv):
     h,s,v = seperate_chanel(image_hsv, plot=False)
@@ -225,9 +210,7 @@ def aspect_crop(image, x,y,w,h):
     c = int((w-max(int(h/2),w))/2)
     return image[y:y+h,x+c:x+max(w,int(h/2))+c]
 
-def preprocess_hsv(image_bgr):
-    lut1 = init_lut(fn=linear_fn, coefficient=15)
-    lut2 = init_lut(fn=curved, coefficient=1.5)
+def preprocess_hsv(image_bgr, lut1, lut2):
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
     image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
     image_hsv = apply_lut(image_hsv, 1, lut1)   #tang Sat
@@ -249,7 +232,7 @@ def preprocess_hsv(image_bgr):
     image_hsv = cv2.warpAffine(image_hsv, kernel, (im_wid_input, im_hei_input))
     x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
     image_hsv_croped = aspect_crop(image_hsv, x,y,w,h)
-    return image_hsv_croped, cnt
+    return image_hsv_croped, cnt, ellipse                    # return ellipse
 
 # def select_feature(image):
 #     image_hsv, out_cnt = preprocess_hsv(image)
@@ -321,13 +304,12 @@ def preprocess_hsv(image_bgr):
 
 
 def select_feature(address):
-    image_hsv, cnt = preprocess_hsv(cv2.imread(address))
+    image_hsv, cnt, ellipse = preprocess_hsv(cv2.imread(address))
     image_rgb = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
-    overall_geometry = geometry_analysis(cnt)
+    overall_geometry = geometry_analysis(cnt, ellipse)
     overall_statistic = statistic_analysis(image_rgb)
-    h,s,v = cv2.split(image_hsv)
     clahe_op = cv2.createCLAHE(6, (8,8))
-    clahe_v = clahe_op.apply(v)
+    clahe_v = clahe_op.apply(image_hsv[:,:,2])
     
     # Structure analysis
     gabor_filter = []
@@ -341,8 +323,7 @@ def select_feature(address):
     for i in range(len(theta)):
         contours, hir = cv2.findContours(gabored[i], cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         hei,wid = np.shape(clahe_v)
-        # print('wid=', wid)
-        map = np.zeros((hei, wid, 3), dtype=np.uint8)
+        # map = np.zeros((hei, wid, 3), dtype=np.uint8)
         bbrect = []
         for cnt in contours:
             x,y,w,h = cv2.boundingRect(cnt)
@@ -365,7 +346,7 @@ def select_feature(address):
             rect = cv2.minAreaRect(convexHull)
             (x,y), (w,h), o = rect
             bbrect.append([x,y,w,h])
-            box = cv2.boxPoints(rect) 
+            # box = cv2.boxPoints(rect) 
         if len(bbrect) == 0:
             bbrect_array.append([[0,0,0,0]])
         else:
@@ -381,41 +362,176 @@ def select_feature(address):
         std.append(np.std(bbrect_array[i], axis=0).tolist())
         skewness.append(skew(bbrect_array[i], axis=0).tolist())
         kurtosises.append((-kurtosis(bbrect_array[i], axis=0)).tolist())
-
+    structure = np.asarray([mean, std, skewness, kurtosises]).flatten()
+    
     #moldered analysis
+    r,g,b = cv2.split(image_rgb)
+
+    ret, thr = cv2.threshold(r, 120, 255, cv2.THRESH_BINARY)
+    ret, thg = cv2.threshold(g, 135, 255, cv2.THRESH_BINARY)
+    ret, thb = cv2.threshold(b, 100, 255, cv2.THRESH_BINARY)
+
+    meg = np.min([thr,thg,thb], axis=0)
+    blur = cv2.GaussianBlur(meg, (11,11),0)
+    ret, blur = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
+
+    contours, hir = cv2.findContours(blur, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    hei,wid = np.shape(blur)
+    blur = cv2.cvtColor(blur, cv2.COLOR_GRAY2RGB)
+    shape = []
+    stat = []
+    for cnt in contours:
+        x,y,w,h = cv2.boundingRect(cnt)
+        convexHull = cv2.convexHull(cnt)
+        convexhull_area = cv2.contourArea(convexHull)
+        if convexhull_area < 9:
+            continue
+        if len(cnt)<5:
+            continue
+        if len(convexHull)<5:
+            continue
+
+        rect = cv2.minAreaRect(convexHull)
+        (x2,y2),(w2,h2),o = rect
+        r = w2/h2
+        if (r>3) or (r<0.333):
+            continue
+        feature = image_rgb[y:y+h, x:x+w, :]
+        stat.append(statistic_analysis(feature))
+        shape.append([w,h])
+        cv2.drawContours(blur, [convexHull], -1, (255,0,0), 1)
+
+    n = len(stat)
+    ft = np.concatenate([shape, stat], axis=1).tolist()
+    if (n!=0):
+        mean = np.mean(ft, axis=0).tolist()
+        stddev = np.std(ft,axis=0).tolist()
+        skewness = skew(ft,axis=0)
+        kurtosises = kurtosis(ft,axis=0)
+        mold = np.asarray([mean, stddev, skewness, kurtosises]).flatten()
+    else:
+        mold = np.zeros(56)
+
+    return np.concatenate([overall_statistic, overall_geometry, n, structure.flatten(), mold.flatten()], axis=None)
 
 
 
+class feature_extract:
+    def __init__(self) -> None:
+        self.lut1 = init_lut(fn=linear_fn, coefficient=15)
+        self.lut2 = init_lut(fn=curved, coefficient=1.5)
+        self.image_hsv = None
+        self.image_rgb = None
+        self.clahe6 = cv2.createCLAHE(6, (8,8))
+        self.clahe1 = cv2.createCLAHE(1, (8,8))
+        self.gabor_filter = []
+        theta = [0, np.pi/6,  np.pi/3, np.pi/2, -np.pi/3, -np.pi/6]
+        for i in range(len(theta)):
+            self.gabor_filter.append(cv2.getGaborKernel((35,35), sigma=6, theta=theta[i], lambd=6*np.pi, gamma=0.2, psi=0))
+        self.clahe_v = None
+        self.clahe_r = None
+        self.clahe_g = None
+        self.clahe_b = None
+        self.overall_geometry = None
+        self.overall_statistic = None
+        self.n1 = None
+        self.n2 = None
+        self.structure = None
+        self.mold = None
+        pass
 
+    def process(self, image_bgr):
+        self.image_hsv, cnt, ellipse = preprocess_hsv(image_bgr, self.lut1, self.lut2)
+        self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
+        self.overall_geometry = geometry_analysis(cnt, ellipse)
+        self.overall_statistic = statistic_analysis(self.image_rgb)
+        self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+        gabored = []
+        for i in range(len(self.gabor_filter)):
+            gabored.append(cv2.filter2D(self.clahe_v, cv2.CV_8UC3, -self.gabor_filter[i]))
 
+        bbrect_array = []
+        for i in range(len(self.gabor_filter)):
+            contours, hir = cv2.findContours(gabored[i], cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+            hei,wid = np.shape(self.clahe_v)
+            bbrect = []
+            for cnt in contours:
+                x,y,w,h = cv2.boundingRect(cnt)
+                if x<20:
+                    continue
+                if (x+w)>(wid-20):
+                    continue
+                if y<20:
+                    continue
+                if (y+h)>(hei-20):
+                    continue
+                convexHull = cv2.convexHull(cnt)
+                convexhull_area = cv2.contourArea(convexHull)
+                if convexhull_area<16:
+                    continue
+                if len(cnt)<5:
+                        continue
+                if len(convexHull)<5:
+                        continue
+                rect = cv2.minAreaRect(convexHull)
+                (x,y), (w,h), o = rect
+                bbrect.append([x,y,w,h])
+            if len(bbrect) == 0:
+                bbrect_array.append([[0,0,0,0]])
+            else:
+                bbrect_array.append(bbrect)  
+        self.n1 =[]
+        mean = [] 
+        std = []
+        skewness = []
+        kurtosises = []
+        for i in range(len(bbrect_array)):
+            self.n1.append(np.shape(bbrect_array[i])[0])
+            mean.append(np.mean(bbrect_array[i], axis=0).tolist())
+            std.append(np.std(bbrect_array[i], axis=0).tolist())
+            skewness.append(skew(bbrect_array[i], axis=0).tolist())
+            kurtosises.append((-kurtosis(bbrect_array[i], axis=0)).tolist())
+        self.structure = np.asarray([mean, std, skewness, kurtosises]).flatten()
 
+        r,g,b = cv2.split(self.image_rgb)
 
+        ret, r = cv2.threshold(r, 120, 255, cv2.THRESH_BINARY)
+        ret, g = cv2.threshold(g, 135, 255, cv2.THRESH_BINARY)
+        ret, b = cv2.threshold(b, 100, 255, cv2.THRESH_BINARY)
 
+        meg = np.min([r,g,b], axis=0)
+        meg = cv2.GaussianBlur(meg, (11,11),0)
+        ret, meg = cv2.threshold(meg, 20, 255, cv2.THRESH_BINARY)
 
+        contours, hir = cv2.findContours(meg, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        hei,wid = np.shape(meg)
+        meg = cv2.cvtColor(meg, cv2.COLOR_GRAY2RGB)
+        shape = []
+        stat = []
+        for cnt in contours:
+            x,y,w,h = cv2.boundingRect(cnt)
+            convexHull = cv2.convexHull(cnt)
+            convexhull_area = cv2.contourArea(convexHull)
+            if convexhull_area < 9:
+                continue
+            if len(cnt)<5:
+                continue
+            if len(convexHull)<5:
+                continue
+            (x2,y2),(w2,h2),o = cv2.minAreaRect(convexHull)
+            r = w2/h2
+            if (r>3) or (r<0.333):
+                continue
+            stat.append(statistic_analysis(self.image_rgb[y:y+h, x:x+w, :]))
+            shape.append([w,h])
 
-
-
-
-
-
-
-
-
-
-
-
-
-# class feature_extract:
-#     def __init__(self) -> None:
-#         self.classes_name = ['Agglutinated', 'Brittle', 'Compartmentalized_Brown', 'Compartmentalized_PartiallyPurple', 'Compartmentalized_Purple', 'Compartmentalized_Slaty', 'Compartmentalized_White', 'Flattened', 'Moldered', 'Plated_Brown', 'Plated_PartiallyPurple', 'Plated_Purple', 'Plated_Slaty', 'Plated_White']
-#         self.training_address = 'D:/Thesis_data/mlp_data/training_img/'
-#         self.testing_address = 'D:/Thesis_data/mlp_data/testing_img/'
-#         self.lut1 = init_lut(fn=linear_fn, coefficient=15)
-#         self.lut2 = init_lut(fn=curved, coefficient=1.5)
-#         self.image_hsv = None
-        
-#         self.x_train = []
-#         self.x_test = []
-#         self.y_train = []
-#         self.y_test = []
-#         pass
+        self.n2 = len(stat)
+        ft = np.concatenate([shape, stat], axis=1).tolist()
+        if (self.n2 != 0):
+            mean = np.mean(ft, axis=0).tolist()
+            stddev = np.std(ft,axis=0).tolist()
+            skewness = skew(ft,axis=0)
+            kurtosises = kurtosis(ft,axis=0)
+            self.mold = np.asarray([mean, stddev, skewness, kurtosises]).flatten()
+        else:
+            self.mold = np.zeros(56)
