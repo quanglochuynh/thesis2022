@@ -94,7 +94,6 @@ def statistic_analysis(image):
     total_pix = shape[0]*shape[1]
     (sumR, sumG, sumB) = (np.sum(im[:, :, 0]), np.sum(im[:, :, 1]), np.sum(im[:, :, 2]))
     meanR, meanG, meanB = sumR/total_pix, sumG/total_pix, sumB/total_pix
-    medianR, medianG, medianB = st.median(im[:, :, 0].flatten()), st.median(im[:, :, 1].flatten()), st.median(im[:, :, 2].flatten())
     stdR = np.sqrt(np.sum(np.square(np.subtract(im[:, :, 0],meanR)))/(total_pix-1))
     stdG = np.sqrt(np.sum(np.square(np.subtract(im[:, :, 1],meanG)))/(total_pix-1))
     stdB = np.sqrt(np.sum(np.square(np.subtract(im[:, :, 2],meanB)))/(total_pix-1))
@@ -102,11 +101,10 @@ def statistic_analysis(image):
     kurtosisR, kurtosisG, kurtosisB = kurtosis(im[:, :, 0].flatten()), kurtosis(im[:, :, 1].flatten()), kurtosis(im[:, :, 2].flatten())
     return np.array([
         [meanR, meanG, meanB],
-        [medianR, medianG, medianB],
         [stdR, stdG, stdB],
         [skewR, skewG, skewB],
         [kurtosisR, kurtosisG, kurtosisB]
-    ], dtype=object)
+    ], dtype=object).flatten()
 
 def geometry_analysis(cnt):
         x,y,w,h = cv2.boundingRect(cnt)
@@ -237,7 +235,7 @@ def preprocess_hsv(image_bgr):
     x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
     ellipse = cv2.fitEllipse(cnt)
     (eX, eY), (alX, alY), orientation = ellipse
-    print('ori = ', orientation)
+    # print('ori = ', orientation)
     if orientation>90:
         orientation = -180+orientation
     a = orientation * 2*np.pi/360
