@@ -3,7 +3,7 @@ from matplotlib import image
 import numpy as np
 import pathlib
 import cv2
-from image_extractor import select_feature
+from image_extractor import feature_extract
 
 # input_shape = (img_width, img_height, 3)
 # train_dir = pathlib.Path('D:/Thesis_data/mlp_data/training_img')
@@ -17,6 +17,7 @@ training_address = 'D:/Thesis_data/mlp_data/training_img/'
 testing_address = 'D:/Thesis_data/mlp_data/testing_img/'
 
 def batch_prepare(i):
+    extractor = feature_extract()
     x_train = np.array([], dtype=float)
     y_train = np.array([], dtype=float)
     x_test = np.array([], dtype=float)
@@ -28,19 +29,20 @@ def batch_prepare(i):
     #     print(classes_name[i],'IMAGE ', j)
     #     add = testing_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
     #     image = cv2.imread(add)
-    #     res = select_feature(image)
-    #     # print(np.shape(res))
+    #     extractor.process(image)
+    #     res = np.concatenate([extractor.overall_statistic, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
     #     x_test = np.append(x_test, res)
     #     y_test = np.append(y_test, t)
-    # np.savez_compressed('D:/Thesis_data/mlp_data/' + 'XY_test_' + classes_name[i], xtest = x_test, ytest = y_test)
+    # np.savez_compressed('D:/Thesis_data/mlp_data/XY_test_' + classes_name[i], xtest = x_test, ytest = y_test)
+
     t = tmp
     t[i] = 1
     for j in range(1,481):
         print(classes_name[i],'IMAGE ', j)
         add = training_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
         image = cv2.imread(add)
-        res = select_feature(image)
-        # print(np.shape(res))
+        extractor.process(image)
+        res = np.concatenate([extractor.overall_statistic, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
         x_train = np.append(x_train, res)
         y_train = np.append(y_train, t)
     np.savez_compressed('D:/Thesis_data/mlp_data/XY_train_' + classes_name[i], xtrain = x_train, ytrain = y_train)
