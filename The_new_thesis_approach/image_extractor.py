@@ -123,7 +123,7 @@ def geometry_analysis(cnt, ellipse):
         solidity = real_area/convex_area
         bb_ratio = real_area/(w*h)
         eccentricity_distance = np.sqrt( (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2 )
-        return [x,y,w,h,real_area, perimeter, alX, alY, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance]
+        return [w,h,real_area, perimeter, alX, alY, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance]
 
 
 def draw_bb(im,data):
@@ -210,15 +210,16 @@ def aspect_crop(image, x,y,w,h):
     c = int((w-max(int(h/2),w))/2)
     return image[y:y+h,x+c:x+max(w,int(h/2))+c]
 
-def preprocess_hsv(image_bgr, lut1, lut2):
+def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True):
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
-    image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
-    image_hsv = apply_lut(image_hsv, 1, lut1)   #tang Sat
+    if (lut1!=None):
+        image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
+    if (lut2!=None):
+        image_hsv = apply_lut(image_hsv, 1, lut1)   #tang Sat
     image_hsv = hsv_filter(image_hsv)
     x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
     ellipse = cv2.fitEllipse(cnt)
     (eX, eY), (alX, alY), orientation = ellipse
-    # print('ori = ', orientation)
     if orientation>90:
         orientation = -180+orientation
     a = orientation * 2*np.pi/360
@@ -227,12 +228,12 @@ def preprocess_hsv(image_bgr, lut1, lut2):
     my = im_hei_input/2
     alp = np.cos(a)
     bet = np.sin(a)
-    kernel = np.float32([[alp, bet, (1-alp)*mx - bet*my],
-                        [-bet, alp, bet*mx + (1-alp)*my]])
-    image_hsv = cv2.warpAffine(image_hsv, kernel, (im_wid_input, im_hei_input))
+    image_hsv = cv2.warpAffine(image_hsv, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
     x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
-    image_hsv_croped = aspect_crop(image_hsv, x,y,w,h)
-    return image_hsv_croped, cnt, ellipse                    # return ellipse
+    if Contour==True:
+        return aspect_crop(image_hsv, x,y,w,h), cnt, ellipse                    # return ellipse
+    else:
+        return aspect_crop(image_hsv, x,y,w,h)
 
 # def select_feature(image):
 #     image_hsv, out_cnt = preprocess_hsv(image)
@@ -413,8 +414,6 @@ def select_feature(address):
         mold = np.zeros(56)
 
     return np.concatenate([overall_statistic, overall_geometry, n, structure.flatten(), mold.flatten()], axis=None)
-
-
 
 class feature_extract:
     def __init__(self) -> None:
