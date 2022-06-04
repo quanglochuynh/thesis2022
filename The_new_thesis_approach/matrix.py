@@ -5,7 +5,7 @@ class Matrix:
     def __init__(self, n,m):
         self.rows = n
         self.cols = m        
-        self.data = np.array([[0]*m] * n)      #numpy array
+        self.data = np.zeros((n,m), dtype=np.float32)      #numpy array
 
 
     def randomize(self):
