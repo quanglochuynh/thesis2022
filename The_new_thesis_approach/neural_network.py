@@ -1,3 +1,4 @@
+from matplotlib.pyplot import cla
 import numpy as np
 from numpy import random as rd
 import os
@@ -5,25 +6,24 @@ import pickle
 from matrix import Matrix
 from sklearn.utils import shuffle
 
-def sigmoid(x):
+def Sigmoid(x, der=False):
+    if der:
+        return x*(1-x)
     return 1/(1+pow(2.7182818284, -x))
 
-def dsigmoid(x):
-    return x*(1-x)
-
-def relu(x):
+def ReLU(x, der=False):
+    if der:
+        if x<=0:
+            return 0
+        else:
+            return 1
     return max(x,0)
 
-def drelu(x):
-    if x<=0:
-        return 0
-    else:
-        return 1
-
 class MultilayerNeuralNetwork:
-    def __init__(self, layer_array, learning_rate):
+    def __init__(self, layer_array, learning_rate, activation):
         self.layer_array = layer_array
         self.weight_matrix = []
+        self.activation = activation
         for i in range(0, len(layer_array)-1):
             m = Matrix(layer_array[i+1], layer_array[i])
             m.randomize()
@@ -45,10 +45,10 @@ class MultilayerNeuralNetwork:
             for i in range(len(self.weight_matrix)):
                 data_matrix = Matrix.multiply(self.weight_matrix[i], data_matrix)
                 data_matrix = Matrix.add(data_matrix, self.bias_matrix[i])
-                data_matrix = Matrix.map(data_matrix, sigmoid)
+                data_matrix = Matrix.map(data_matrix, self.activation[i])
             return Matrix.matrix_2_array(data_matrix)
     
-    def batch_train(self, input_array, target_array, activation=sigmoid, dactivation=dsigmoid):
+    def batch_train(self, input_array, target_array):
         if (len(input_array) != self.layer_array[0]):
             print("Wrong input dimension!")
             return -1
@@ -63,14 +63,14 @@ class MultilayerNeuralNetwork:
             for i in range(len(self.weight_matrix)):
                 feed_matrix = Matrix.multiply(self.weight_matrix[i], feed_matrix)
                 feed_matrix = Matrix.add(feed_matrix, self.bias_matrix[i])
-                feed_matrix = Matrix.map(feed_matrix, activation)
+                feed_matrix = Matrix.map(feed_matrix, self.activation[i].func())
                 layer_result_matrix_array.append(feed_matrix)
             feed_result_matrix = layer_result_matrix_array[len(layer_result_matrix_array)-1]
             #BACK-propagation
             target_matrix = Matrix.array_2_matrix(target_array)
             error_matrix = Matrix.subtract(target_matrix, feed_result_matrix)
             for i in range(len(self.layer_array)-2, -1, -1):
-                gradient_matrix = Matrix.map(layer_result_matrix_array[i+1], dactivation)
+                gradient_matrix = Matrix.map(layer_result_matrix_array[i+1], self.activation[i].deriv())
                 gradient_matrix = Matrix.hadamard(gradient_matrix, error_matrix)
                 gradient_matrix.data = np.multiply(gradient_matrix.data, self.learning_rate)
                 delta = Matrix.multiply(gradient_matrix, Matrix.transpose(layer_result_matrix_array[i]))
@@ -80,7 +80,7 @@ class MultilayerNeuralNetwork:
                 error_matrix = Matrix.multiply(weight_transposed, error_matrix)
             return np.sum(np.square(error_matrix.data))
 
-    def fit(self,dataset, epochs=1, initial_lr=0.01, damping_coeficient=1, activation=sigmoid, dactivation=dsigmoid):
+    def fit(self,dataset, epochs=1, initial_lr=0.01, damping_coeficient=1):
         print("Training...")
         original_lr = self.learning_rate
         lr = initial_lr
