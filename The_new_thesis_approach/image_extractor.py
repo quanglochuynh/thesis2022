@@ -445,6 +445,11 @@ class feature_extract:
         self.overall_geometry = geometry_analysis(cnt, ellipse)
         self.overall_statistic = statistic_analysis(self.image_rgb)
         self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+        self.extract_structure()
+        self.extract_mold()
+        self.extract_glcm()
+        
+    def extract_structure(self):    
         gabored = []
         for i in range(len(self.gabor_filter)):
             gabored.append(cv2.filter2D(self.clahe_v, cv2.CV_8UC3, -self.gabor_filter[i]))
