@@ -72,7 +72,6 @@ def histogram_analysis(im, plot=False):
                 if val>8:
                     histogram[k][val] = histogram[k][val] + 1
     if plot==True:
-        plt.rcParams["figure.figsize"] = (6,6)
         ax = plt.gca()
         ax.set_xlim([0, 255])
         ax.set_ylim([0, 2500])
@@ -224,7 +223,7 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True):
     alp = np.cos(a)
     bet = np.sin(a)
     image_hsv = cv2.warpAffine(image_hsv, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
-    x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
+    x,y,w,h,cnt2 = bounding_box(image_hsv[:,:,2])
     if Contour==True:
         return aspect_crop(image_hsv, x,y,w,h), cnt, ellipse                    # return ellipse
     else:
