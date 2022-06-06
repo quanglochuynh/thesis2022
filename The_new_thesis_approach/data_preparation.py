@@ -23,17 +23,18 @@ def batch_prepare(i):
     x_test = np.array([], dtype=float)
     y_test = np.array([], dtype=float)
     tmp = np.zeros((14))
-    # t = tmp
-    # t[i] = 1
-    # for j in range(1,121):
-    #     print(classes_name[i],'IMAGE ', j)
-    #     add = testing_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
-    #     image = cv2.imread(add)
-    #     extractor.process(image)
-    #     res = np.concatenate([extractor.overall_statistic, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
-    #     x_test = np.append(x_test, res)
-    #     y_test = np.append(y_test, t)
-    # np.savez_compressed('D:/Thesis_data/mlp_data/XY_test_' + classes_name[i], xtest = x_test, ytest = y_test)
+    
+    t = tmp
+    t[i] = 1
+    for j in range(1,121):
+        print(classes_name[i],'IMAGE ', j)
+        add = testing_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
+        image = cv2.imread(add)
+        extractor.extract(image)
+        res = np.concatenate([extractor.overall_rgb_stat, extractor.overall_hsv_stat, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
+        x_test = np.append(x_test, res)
+        y_test = np.append(y_test, t)
+    np.savez_compressed('D:/Thesis_data/mlp_data/XY_test_3_' + classes_name[i], xtest = x_test, ytest = y_test)
 
     t = tmp
     t[i] = 1
@@ -41,11 +42,11 @@ def batch_prepare(i):
         print(classes_name[i],'IMAGE ', j)
         add = training_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
         image = cv2.imread(add)
-        extractor.process(image)
-        res = np.concatenate([extractor.overall_statistic, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
+        extractor.extract(image)
+        res = np.concatenate([extractor.overall_rgb_stat, extractor.overall_hsv_stat, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
         x_train = np.append(x_train, res)
         y_train = np.append(y_train, t)
-    np.savez_compressed('D:/Thesis_data/mlp_data/XY_train_' + classes_name[i], xtrain = x_train, ytrain = y_train)
+    np.savez_compressed('D:/Thesis_data/mlp_data/XY_train_3_' + classes_name[i], xtrain = x_train, ytrain = y_train)
 
 # print(x_test)
 # print(y_test)
@@ -57,14 +58,14 @@ def batch_prepare(i):
 # print(b)
 
 if __name__ == '__main__':
-    k=7
+    k=8
     p1 = multiprocessing.Process(target=batch_prepare, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_prepare, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_prepare, args=(k+2,))
     p4 = multiprocessing.Process(target=batch_prepare, args=(k+3,))
     p5 = multiprocessing.Process(target=batch_prepare, args=(k+4,))
     p6 = multiprocessing.Process(target=batch_prepare, args=(k+5,))
-    p7 = multiprocessing.Process(target=batch_prepare, args=(k+6,))
+    p7 = multiprocessing.Process(target=batch_prepare, args=(0,))
 
     p1.start()
     p2.start()

@@ -1,14 +1,8 @@
 import cv2
-from matplotlib.cbook import flatten
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.fft import idst 
 from scipy.stats import skew, kurtosis
 from skimage.feature import graycomatrix, graycoprops
-import statistics as st
-
-# gm = 0.75
-# dx = 10
 
 def partition(l, r, nums):
     # Last element will be the pivot and the first element the pointer
@@ -85,6 +79,7 @@ def histogram_analysis(im, plot=False):
         plt.plot(np.linspace(0,255, 256,dtype=np.int16),histogram[0], 'r')
         plt.plot(np.linspace(0,255, 256,dtype=np.int16),histogram[1], 'g')
         plt.plot(np.linspace(0,255, 256,dtype=np.int16),histogram[2], 'b')
+        plt.show()
     return histogram
 
 def statistic_analysis(image):
@@ -235,185 +230,6 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True):
     else:
         return aspect_crop(image_hsv, x,y,w,h)
 
-# def select_feature(image):
-#     image_hsv, out_cnt = preprocess_hsv(image)
-#     image_rgb = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
-#     # x,y,w,h,out_cnt = bounding_box(image_hsv[:,:,2])
-
-#     overall_geometry = geometry_analysis(out_cnt)
-#     overall_statistic = statistic_analysis(image_rgb[y:y+h,x:x+w])
-
-#     # image_hsv_croped = aspect_crop(image_hsv, x,y,w,h)
-#     hue,sat,val = seperate_chanel(image_hsv, plot=False)
-
-    # geometry_feature = []
-    # statistic_feature = []
-    # selected_geometry_feature = [overall_geometry]
-    # selected_statistic_feature = [overall_statistic]
-    # ct_H, ct_V = hsv_contour_extract(image_hsv)
-    # area = []
-    # id = 0
-    # for cnt in ct_H:
-    #     (x,y,w,h) = cv2.boundingRect(cnt)
-    #     geo = geometry_analysis(cnt)
-    #     # print(geo)
-    #     if len(geo)>1:
-    #         area.append((id,w*h))
-    #         id = id+1
-    #         geometry_feature.append(geo)
-    #         statistic_feature.append(statistic_analysis(image_rgb[y:y+h,x:x+w]))
-
-    # for cnt in ct_V:
-    #     (x,y,w,h) = cv2.boundingRect(cnt)
-    #     geo = geometry_analysis(cnt)
-    #     # print(geo)
-    #     if len(geo)>1:
-    #         area.append((id,w*h))
-    #         id = id+1
-    #         geometry_feature.append(geo)
-    #         statistic_feature.append(statistic_analysis(image_rgb[y:y+h,x:x+w]))
-
-    # area = quicksort(0, len(area)-1, area)
-    # # print('LEN=',len(geometry_feature))
-    # if (len(geometry_feature)>10):
-    #     for i in range(10):
-    #         # print(area[i][0], area[i][1])
-    #         selected_geometry_feature.append(geometry_feature[area[i][0]])
-    #         selected_statistic_feature.append(statistic_feature[area[i][0]])
-    # else:
-    #     for i in range(10):
-    #         id = np.random.randint(0, len(area))
-    #         selected_geometry_feature.append(geometry_feature[id])
-    #         selected_statistic_feature.append(statistic_feature[id])
-
-    # # val = CLAHE(val, grey=True)
-    # clahe_op = cv2.createCLAHE(4, (8,8))
-    # val = clahe_op.apply(val)
-    # val = cv2.resize(val, (128,256))
-
-    # bins = np.linspace(0, 256, 33)
-    # digitize = np.digitize(val, bins) - 1
-
-    # glcm = graycomatrix(digitize, [5,7,9,11], [0, np.pi/4, np.pi/2, 3*np.pi/4], 32, True, False)
-    # glcm = glcm[1:31,1:31,:,:];
-    # glcm_cons = graycoprops(glcm, 'contrast')
-    # glcm_dissimilarity = graycoprops(glcm, 'dissimilarity')
-    # glcm_energy = graycoprops(glcm, 'energy')
-    # glcm_correlation = graycoprops(glcm, 'correlation')
-
-    # return np.concatenate([np.array(selected_geometry_feature).flatten(), np.array(selected_statistic_feature).flatten(), glcm_cons.flatten(), glcm_dissimilarity.flatten(), glcm_energy.flatten(), glcm_correlation.flatten()], axis=None)
-
-
-def select_feature(address):
-    image_hsv, cnt, ellipse = preprocess_hsv(cv2.imread(address))
-    image_rgb = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
-    overall_geometry = geometry_analysis(cnt, ellipse)
-    overall_statistic = statistic_analysis(image_rgb)
-    clahe_op = cv2.createCLAHE(6, (8,8))
-    clahe_v = clahe_op.apply(image_hsv[:,:,2])
-    
-    # Structure analysis
-    gabor_filter = []
-    gabored = []
-    theta = [0, np.pi/6,  np.pi/3, np.pi/2, -np.pi/3, -np.pi/6]
-    for i in range(len(theta)):
-        gabor_filter.append(cv2.getGaborKernel((35,35), sigma=6, theta=theta[i], lambd=6*np.pi, gamma=0.2, psi=0))
-        gabored.append(cv2.filter2D(clahe_v, cv2.CV_8UC3, -gabor_filter[i]))
-
-    bbrect_array = []
-    for i in range(len(theta)):
-        contours, hir = cv2.findContours(gabored[i], cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        hei,wid = np.shape(clahe_v)
-        # map = np.zeros((hei, wid, 3), dtype=np.uint8)
-        bbrect = []
-        for cnt in contours:
-            x,y,w,h = cv2.boundingRect(cnt)
-            if x<20:
-                continue
-            if (x+w)>(wid-20):
-                continue
-            if y<20:
-                continue
-            if (y+h)>(hei-20):
-                continue
-            convexHull = cv2.convexHull(cnt)
-            convexhull_area = cv2.contourArea(convexHull)
-            if convexhull_area<16:
-                continue
-            if len(cnt)<5:
-                    continue
-            if len(convexHull)<5:
-                    continue
-            rect = cv2.minAreaRect(convexHull)
-            (x,y), (w,h), o = rect
-            bbrect.append([x,y,w,h])
-            # box = cv2.boxPoints(rect) 
-        if len(bbrect) == 0:
-            bbrect_array.append([[0,0,0,0]])
-        else:
-            bbrect_array.append(bbrect)  
-    n =[]
-    mean = [] 
-    std = []
-    skewness = []
-    kurtosises = []
-    for i in range(len(bbrect_array)):
-        n.append(np.shape(bbrect_array[i])[0])
-        mean.append(np.mean(bbrect_array[i], axis=0).tolist())
-        std.append(np.std(bbrect_array[i], axis=0).tolist())
-        skewness.append(skew(bbrect_array[i], axis=0).tolist())
-        kurtosises.append((-kurtosis(bbrect_array[i], axis=0)).tolist())
-    structure = np.asarray([mean, std, skewness, kurtosises]).flatten()
-    
-    #moldered analysis
-    r,g,b = cv2.split(image_rgb)
-
-    ret, thr = cv2.threshold(r, 120, 255, cv2.THRESH_BINARY)
-    ret, thg = cv2.threshold(g, 135, 255, cv2.THRESH_BINARY)
-    ret, thb = cv2.threshold(b, 100, 255, cv2.THRESH_BINARY)
-
-    meg = np.min([thr,thg,thb], axis=0)
-    blur = cv2.GaussianBlur(meg, (11,11),0)
-    ret, blur = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
-
-    contours, hir = cv2.findContours(blur, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    hei,wid = np.shape(blur)
-    blur = cv2.cvtColor(blur, cv2.COLOR_GRAY2RGB)
-    shape = []
-    stat = []
-    for cnt in contours:
-        x,y,w,h = cv2.boundingRect(cnt)
-        convexHull = cv2.convexHull(cnt)
-        convexhull_area = cv2.contourArea(convexHull)
-        if convexhull_area < 9:
-            continue
-        if len(cnt)<5:
-            continue
-        if len(convexHull)<5:
-            continue
-
-        rect = cv2.minAreaRect(convexHull)
-        (x2,y2),(w2,h2),o = rect
-        r = w2/h2
-        if (r>3) or (r<0.333):
-            continue
-        feature = image_rgb[y:y+h, x:x+w, :]
-        stat.append(statistic_analysis(feature))
-        shape.append([w,h])
-        cv2.drawContours(blur, [convexHull], -1, (255,0,0), 1)
-
-    n = len(stat)
-    ft = np.concatenate([shape, stat], axis=1).tolist()
-    if (n!=0):
-        mean = np.mean(ft, axis=0).tolist()
-        stddev = np.std(ft,axis=0).tolist()
-        skewness = skew(ft,axis=0)
-        kurtosises = kurtosis(ft,axis=0)
-        mold = np.asarray([mean, stddev, skewness, kurtosises]).flatten()
-    else:
-        mold = np.zeros(56)
-
-    return np.concatenate([overall_statistic, overall_geometry, n, structure.flatten(), mold.flatten()], axis=None)
 
 class feature_extract:
     def __init__(self) -> None:
@@ -423,31 +239,39 @@ class feature_extract:
         self.image_rgb = None
         self.clahe6 = cv2.createCLAHE(6, (8,8))
         self.clahe1 = cv2.createCLAHE(1, (8,8))
+        self.clahe4 = cv2.createCLAHE(4, (8,8))
         self.gabor_filter = []
         theta = [0, np.pi/6,  np.pi/3, np.pi/2, -np.pi/3, -np.pi/6]
         for i in range(len(theta)):
             self.gabor_filter.append(cv2.getGaborKernel((35,35), sigma=6, theta=theta[i], lambd=6*np.pi, gamma=0.2, psi=0))
+        self.cnt = None
+        self.ellipse = None
         self.clahe_v = None
-        self.clahe_r = None
-        self.clahe_g = None
-        self.clahe_b = None
+        self.level = 16
         self.overall_geometry = None
-        self.overall_statistic = None
+        self.overall_rgb_stat = None
+        self.overall_hsv_stat = None
         self.n1 = None
         self.n2 = None
         self.structure = None
         self.mold = None
+        self.glcm_dissimilarity = None
+        self.glcm_correlation = None
         pass
 
-    def process(self, image_bgr):
-        self.image_hsv, cnt, ellipse = preprocess_hsv(image_bgr, self.lut1, self.lut2)
-        self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
-        self.overall_geometry = geometry_analysis(cnt, ellipse)
-        self.overall_statistic = statistic_analysis(self.image_rgb)
-        self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+    def extract(self, image_bgr):
+        self.pre_process(image_bgr)
+        self.overall_geometry = geometry_analysis(self.cnt, self.ellipse)
+        self.overall_rgb_stat = statistic_analysis(self.image_rgb)
+        self.overall_hsv_stat = statistic_analysis(self.image_hsv)
         self.extract_structure()
         self.extract_mold()
         self.extract_glcm()
+
+    def pre_process(self, image_bgr):
+        self.image_hsv, self.cnt, self.ellipse = preprocess_hsv(image_bgr, self.lut1, self.lut2)
+        self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
+        self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
         
     def extract_structure(self):    
         gabored = []
@@ -496,7 +320,8 @@ class feature_extract:
             skewness.append(skew(bbrect_array[i], axis=0).tolist())
             kurtosises.append((-kurtosis(bbrect_array[i], axis=0)).tolist())
         self.structure = np.asarray([mean, std, skewness, kurtosises]).flatten()
-
+        
+    def extract_mold(self):
         r,g,b = cv2.split(self.image_rgb)
 
         ret, r = cv2.threshold(r, 120, 255, cv2.THRESH_BINARY)
@@ -529,9 +354,9 @@ class feature_extract:
             stat.append(statistic_analysis(self.image_rgb[y:y+h, x:x+w, :]))
             shape.append([w,h])
 
-        self.n2 = len(stat)
-        ft = np.concatenate([shape, stat], axis=1).tolist()
+        self.n2 = np.shape(stat)[0]
         if (self.n2 != 0):
+            ft = np.concatenate([shape, stat], axis=1).tolist()
             mean = np.mean(ft, axis=0).tolist()
             stddev = np.std(ft,axis=0).tolist()
             skewness = skew(ft,axis=0)
@@ -539,3 +364,12 @@ class feature_extract:
             self.mold = np.asarray([mean, stddev, skewness, kurtosises]).flatten()
         else:
             self.mold = np.zeros(56)
+        
+    def extract_glcm(self):
+        self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
+        bins = np.linspace(0, 256, self.level+1)
+        digitize = np.digitize(self.clahe_v, bins) - 1
+        glcm = graycomatrix(digitize, [5,7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
+        glcm = glcm[2:self.level+1,2:self.level+1]
+        self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
+        self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
