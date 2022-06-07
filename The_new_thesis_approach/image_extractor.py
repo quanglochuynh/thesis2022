@@ -378,8 +378,8 @@ class feature_extract:
     def extract_color_grid(self):
         self.grid_stat = []
         hei, wid, c = np.shape(self.image_rgb)
-        for i in range(0, hei, int(hei/4)):
-            for j in range(0, wid, round(wid/4)):
-                im = self.image_rgb[i:i+int(hei/4), j:j+int(wid/4),:]
+        h,w = int(hei/4), int(wid/4)
+        for i in range(0, 4):
+            for j in range(0, 4):
+                im = self.image_rgb[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4),:]
                 self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(im)], axis=None)
-        # self.grid_stat.flatten()
