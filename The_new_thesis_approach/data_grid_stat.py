@@ -24,30 +24,28 @@ def batch_prepare(i):
         extractor.pre_process(image)
         extractor.extract_color_grid()
 #         res = np.concatenate([extractor.overall_rgb_stat, extractor.overall_hsv_stat, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
-        # x_test = np.append(x_test, extractor.grid_stat, axis=0)
-        # y_test = np.append(y_test, t)
-        print(np.shape(extractor.grid_stat))
-        break
+        x_test = np.append(x_test, extractor.grid_stat, axis=0)
+        y_test = np.append(y_test, t)
+        # print(np.shape(extractor.grid_stat))
     np.savez_compressed('D:/Thesis_data/mlp_data/grid_test_' + classes_name[i], xtest = x_test, ytest = y_test)
-#     pass
-#     t = tmp
-#     t[i] = 1
-#     for j in range(1,481):
-#         print(classes_name[i],'IMAGE ', j)
-#         add = training_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
-#         image = cv2.imread(add)
-#         extractor.pre_process(image)
-#         extractor.extract_color_grid()
-# #         res = np.concatenate([extractor.overall_rgb_stat, extractor.overall_hsv_stat, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
-#         x_train = np.append(x_train, extractor.grid_stat)
-#         y_train = np.append(y_train, t)
-#         break
-#     np.savez_compressed('D:/Thesis_data/mlp_data/grid_train_' + classes_name[i], xtrain = x_train, ytrain = y_train)
+    
+    t = tmp
+    t[i] = 1
+    for j in range(1,481):
+        print(classes_name[i],'IMAGE ', j)
+        add = training_address + classes_name[i]+ '/image(' + str(j) + ').JPG'
+        image = cv2.imread(add)
+        extractor.pre_process(image)
+        extractor.extract_color_grid()
+#         res = np.concatenate([extractor.overall_rgb_stat, extractor.overall_hsv_stat, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
+        x_train = np.append(x_train, extractor.grid_stat)
+        y_train = np.append(y_train, t)
+    np.savez_compressed('D:/Thesis_data/mlp_data/grid_train_' + classes_name[i], xtrain = x_train, ytrain = y_train)
 
 
 
 if __name__ == '__main__':
-    k=0
+    k=7
     p1 = multiprocessing.Process(target=batch_prepare, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_prepare, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_prepare, args=(k+2,))
