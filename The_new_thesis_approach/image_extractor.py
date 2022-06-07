@@ -250,6 +250,7 @@ class feature_extract:
         self.overall_geometry = None
         self.overall_rgb_stat = None
         self.overall_hsv_stat = None
+        self.grid_stat = None
         self.n1 = None
         self.n2 = None
         self.structure = None
@@ -266,6 +267,7 @@ class feature_extract:
         self.extract_structure()
         self.extract_mold()
         self.extract_glcm()
+        self.extract_color_grid()
 
     def pre_process(self, image_bgr):
         self.image_hsv, self.cnt, self.ellipse = preprocess_hsv(image_bgr, self.lut1, self.lut2)
@@ -372,3 +374,12 @@ class feature_extract:
         glcm = glcm[2:self.level+1,2:self.level+1]
         self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
         self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
+
+    def extract_color_grid(self):
+        self.grid_stat = []
+        hei, wid, c = np.shape(self.image_rgb)
+        for i in range(0, hei, int(hei/4)):
+            for j in range(0, wid, round(wid/4)):
+                im = self.image_rgb[i:i+int(hei/4), j:j+int(wid/4),:]
+                self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(im)], axis=None)
+        # self.grid_stat.flatten()
