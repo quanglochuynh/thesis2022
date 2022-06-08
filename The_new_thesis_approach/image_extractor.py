@@ -33,7 +33,6 @@ def linear_fn(x, c):
 def curved(x, c):
     return 255*np.power(x/255, 1/c)
 
-
 def init_lut(fn, coefficient):
     LUT = []
     for i in range(256):
@@ -251,6 +250,7 @@ class feature_extract:
         self.overall_rgb_stat = None
         self.overall_hsv_stat = None
         self.grid_stat = None
+        # self.glcm_grid
         self.n1 = None
         self.n2 = None
         self.structure = None
@@ -375,7 +375,7 @@ class feature_extract:
         self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
         self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
 
-    def extract_color_grid(self):
+    def extract_grid(self):
         self.grid_stat = []
         hei, wid, c = np.shape(self.image_rgb)
         h,w = int(hei/4), int(wid/4)

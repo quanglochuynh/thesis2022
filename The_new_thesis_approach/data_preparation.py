@@ -34,6 +34,9 @@ def batch_prepare(i):
         res = np.concatenate([extractor.overall_rgb_stat, extractor.overall_hsv_stat, extractor.overall_geometry, extractor.n1, extractor.structure, extractor.n2, extractor.mold], axis=None)
         x_test = np.append(x_test, res)
         y_test = np.append(y_test, t)
+        # print(np.shape(res))
+        # print(np.shape(extractor.n1))
+        # break
     np.savez_compressed('D:/Thesis_data/mlp_data/XY_test_3_' + classes_name[i], xtest = x_test, ytest = y_test)
 
     t = tmp
