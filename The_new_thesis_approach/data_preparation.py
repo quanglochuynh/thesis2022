@@ -61,14 +61,14 @@ def batch_prepare(i):
 # print(b)
 
 if __name__ == '__main__':
-    k=8
+    k=0
     p1 = multiprocessing.Process(target=batch_prepare, args=(k+0,))
     p2 = multiprocessing.Process(target=batch_prepare, args=(k+1,))
     p3 = multiprocessing.Process(target=batch_prepare, args=(k+2,))
     p4 = multiprocessing.Process(target=batch_prepare, args=(k+3,))
     p5 = multiprocessing.Process(target=batch_prepare, args=(k+4,))
     p6 = multiprocessing.Process(target=batch_prepare, args=(k+5,))
-    p7 = multiprocessing.Process(target=batch_prepare, args=(0,))
+    p7 = multiprocessing.Process(target=batch_prepare, args=(k+6,))
 
     p1.start()
     p2.start()
