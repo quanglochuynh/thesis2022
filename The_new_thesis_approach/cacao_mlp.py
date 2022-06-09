@@ -4,7 +4,7 @@ import keras
 from keras import layers
 import numpy as np
 import matplotlib.pyplot as plt
-from image_extractor import select_feature
+# from image_extractor import select_feature
 
 input_shape = (394,)
 batch_size = 16
@@ -75,10 +75,21 @@ epochs = 20
 # print("Test accuracy:", score[1])
 
 # draw confusion matrix
+import sys
+def progress(count, total, status=''):
+    bar_len = 60
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
+    sys.stdout.flush() 
+
 i = 0
 cmatrix = np.zeros((14,14), dtype=np.int16)
 for i in range(len(x_test)):
-    print(i)
+    progress(i, 1680)
     result = model.predict(np.array([x_test[i]])).flatten()
     id1 = np.argmax(result)
     id2 = np.argmax(y_test[i])
