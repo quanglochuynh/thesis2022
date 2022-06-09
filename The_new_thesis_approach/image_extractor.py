@@ -224,10 +224,9 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True):
     image_hsv = cv2.warpAffine(image_hsv, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
     x,y,w,h,cnt2 = bounding_box(image_hsv[:,:,2])
     if Contour==True:
-        return aspect_crop(image_hsv, x,y,w,h), cnt, ellipse                    # return ellipse
+        return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse                    # return ellipse
     else:
         return aspect_crop(image_hsv, x,y,w,h)
-
 
 class feature_extract:
     def __init__(self) -> None:
@@ -250,11 +249,12 @@ class feature_extract:
         self.overall_rgb_stat = None
         self.overall_hsv_stat = None
         self.grid_stat = None
-        # self.glcm_grid
+        self.glcm_grid = None
         self.n1 = None
         self.n2 = None
         self.structure = None
         self.mold = None
+        self.bins = np.linspace(0, 256, self.level+1)
         self.glcm_dissimilarity = None
         self.glcm_correlation = None
         pass
@@ -267,12 +267,13 @@ class feature_extract:
         self.extract_structure()
         self.extract_mold()
         self.extract_glcm()
-        self.extract_color_grid()
+        self.extract_grid()
 
     def pre_process(self, image_bgr):
-        self.image_hsv, self.cnt, self.ellipse = preprocess_hsv(image_bgr, self.lut1, self.lut2)
+        self.image_hsv, self.cnt, self.ellipse = preprocess_hsv(image_bgr)
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
         self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+
         
     def extract_structure(self):    
         gabored = []
@@ -368,8 +369,7 @@ class feature_extract:
         
     def extract_glcm(self):
         self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
-        bins = np.linspace(0, 256, self.level+1)
-        digitize = np.digitize(self.clahe_v, bins) - 1
+        digitize = np.digitize(self.clahe_v, self.bins) - 1
         glcm = graycomatrix(digitize, [5,7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
         glcm = glcm[2:self.level+1,2:self.level+1]
         self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
@@ -377,9 +377,14 @@ class feature_extract:
 
     def extract_grid(self):
         self.grid_stat = []
+        self.glcm_grid = []
         hei, wid, c = np.shape(self.image_rgb)
         h,w = int(hei/4), int(wid/4)
         for i in range(0, 4):
             for j in range(0, 4):
                 im = self.image_rgb[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4),:]
                 self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(im)], axis=None)
+                self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
+                digitize = np.digitize(self.clahe_v, self.bins) - 1
+                glcm = graycomatrix(digitize, [5,7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
+                self.glcm_grid = np.concatenate([self.glcm_grid, graycoprops(glcm, 'dissimilarity').flatten(), graycoprops(glcm, 'correlation').flatten()], axis=None)
