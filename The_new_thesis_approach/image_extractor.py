@@ -383,8 +383,7 @@ class feature_extract:
         self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
         self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
 
-    def extract_grid(self):
-        self.grid_stat = []
+    def extract_glcm_grid(self):
         self.glcm_grid = []
         hei, wid, c = np.shape(self.origin_rgb)
         h,w = int(hei/4), int(wid/4)
@@ -392,8 +391,14 @@ class feature_extract:
         digitize = np.digitize(self.clahe_v, self.bins) - 1
         for i in range(0, 4):
             for j in range(0, 4):
-                im = self.origin_rgb[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4),:]
-                # self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(im)], axis=None)
-                
                 glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
                 self.glcm_grid = np.concatenate([self.glcm_grid, graycoprops(glcm, 'dissimilarity').flatten(), graycoprops(glcm, 'correlation').flatten()], axis=None)
+
+    def extract_color_grid(self):
+        self.grid_stat = []
+        hei, wid, c = np.shape(self.origin_rgb)
+        h,w = int(hei/8), int(wid/4)
+        for i in range(1, 7):
+            for j in range(0, 4):
+                self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(self.origin_rgb[i*h:i*h+int(hei/6), j*w:j*w+int(wid/4),:])], axis=None)
+                
