@@ -388,12 +388,12 @@ class feature_extract:
         self.glcm_grid = []
         hei, wid, c = np.shape(self.origin_rgb)
         h,w = int(hei/4), int(wid/4)
-        # self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
-        # digitize = np.digitize(self.clahe_v, self.bins) - 1
+        self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
+        digitize = np.digitize(self.clahe_v, self.bins) - 1
         for i in range(0, 4):
             for j in range(0, 4):
                 im = self.origin_rgb[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4),:]
-                self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(im)], axis=None)
+                # self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(im)], axis=None)
                 
-                # glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [5,7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
-                # self.glcm_grid = np.concatenate([self.glcm_grid, graycoprops(glcm, 'dissimilarity').flatten(), graycoprops(glcm, 'correlation').flatten()], axis=None)
+                glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
+                self.glcm_grid = np.concatenate([self.glcm_grid, graycoprops(glcm, 'dissimilarity').flatten(), graycoprops(glcm, 'correlation').flatten()], axis=None)
