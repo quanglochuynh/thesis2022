@@ -205,9 +205,9 @@ def aspect_crop(image, x,y,w,h):
 
 def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=False):
     image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
-    if (lut1!=None):
-        image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
     if (lut2!=None):
+        image_hsv = apply_lut(image_hsv, 2, lut2)   #tang brightness
+    if (lut1!=None):
         image_hsv = apply_lut(image_hsv, 1, lut1)   #tang Sat
     image_hsv = hsv_filter(image_hsv)
     x,y,w,h,cnt = bounding_box(image_hsv[:,:,2])
@@ -242,6 +242,7 @@ class feature_extract:
         self.clahe6 = cv2.createCLAHE(6, (8,8))
         self.clahe1 = cv2.createCLAHE(1, (8,8))
         self.clahe4 = cv2.createCLAHE(4, (8,8))
+        self.im_size = (128,256)
         self.gabor_filter = []
         theta = [0, np.pi/6,  np.pi/3, np.pi/2, -np.pi/3, -np.pi/6]
         for i in range(len(theta)):
@@ -276,6 +277,7 @@ class feature_extract:
 
     def pre_process(self, image_bgr):
         self.image_hsv, self.cnt, self.ellipse, image2 = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
+        self.image_hsv = cv2.resize(self.image_hsv, self.im_size)
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
         x,y,w,h = cv2.boundingRect(self.cnt)
         # self.origin_rgb = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
@@ -402,3 +404,6 @@ class feature_extract:
             for j in range(0, 4):
                 self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(self.origin_rgb[i*h:i*h+int(hei/6), j*w:j*w+int(wid/4),:])], axis=None)
                 
+    def extract_compress_HSV(self):
+        
+        pass
