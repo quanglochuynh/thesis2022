@@ -234,7 +234,7 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
 
 class feature_extract:
     def __init__(self) -> None:
-        self.lut1 = init_lut(fn=linear_fn, coefficient=15)
+        self.lut1 = init_lut(fn=linear_fn, coefficient=5)
         self.lut2 = init_lut(fn=curved, coefficient=1.5)
         self.image_hsv = None
         self.image_rgb = None
