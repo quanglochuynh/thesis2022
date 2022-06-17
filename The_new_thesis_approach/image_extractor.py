@@ -258,11 +258,16 @@ class feature_extract:
         self.glcm_grid = None
         self.n1 = None
         self.n2 = None
+        self.n3 = None
         self.structure = None
         self.mold = None
+        self.purple = None
         self.bins = np.linspace(0, 256, self.level+1)
         self.glcm_dissimilarity = None
         self.glcm_correlation = None
+        self.myhist_H = []
+        self.myhist_S = []
+        self.myhist_V = []
         pass
 
     def extract(self, image_bgr):
@@ -274,13 +279,13 @@ class feature_extract:
         self.extract_mold()
         self.extract_glcm()
         self.extract_grid()
+        self.extract_compress_HSV()
 
     def pre_process(self, image_bgr):
         self.image_hsv, self.cnt, self.ellipse, image2 = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
         self.image_hsv = cv2.resize(self.image_hsv, self.im_size)
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
         x,y,w,h = cv2.boundingRect(self.cnt)
-        # self.origin_rgb = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
         self.origin_rgb = cv2.resize(cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
         self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
 
@@ -405,5 +410,60 @@ class feature_extract:
                 self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(self.origin_rgb[i*h:i*h+int(hei/6), j*w:j*w+int(wid/4),:])], axis=None)
                 
     def extract_compress_HSV(self):
+        hist_H, bin_edge = np.histogram(self.image_hsv[:,:,0], 252,(4,255))
+        hist_S, bin_edge = np.histogram(self.image_hsv[:,:,1], 252,(4,255))
+        hist_V, bin_edge = np.histogram(self.image_hsv[:,:,2], 252,(4,255))
+        nhist_H = hist_H / np.sum(hist_H)
+        nhist_S = hist_S / np.sum(hist_S)
+        nhist_V = hist_V / np.sum(hist_V)
+        bin_width = int(256/32)
+        for i in range(4,255,bin_width):
+            if (i+bin_width<255):
+                self.myhist_H.append(np.mean(nhist_H[i:i+bin_width-1]))
+
+        for i in range(4,255,bin_width*2):
+            if (i+bin_width*2<255):
+                self.myhist_S.append(np.mean(nhist_S[i:i+bin_width*2]))
+                self.myhist_V.append(np.mean(nhist_V[i:i+bin_width*2]))
+
+    def extract_purple(self):
+        r, g, b = cv2.split(self.origin_rgb)
+        ret, thr = cv2.threshold(r, 50,255, cv2.THRESH_BINARY)
+        ret, thg = cv2.threshold(g, 75,255, cv2.THRESH_BINARY)
+        ret, thb = cv2.threshold(b, 40,255, cv2.THRESH_BINARY)
+        minrb = np.min([thr,thb], axis=0)
+        mge = minrb-thg
+        blur = cv2.GaussianBlur(mge, (11,11), 0)
+        ret, thbin = cv2.threshold(blur, 196, 255, cv2.THRESH_BINARY)
+        contours, hr = cv2.findContours(thbin, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        shape = []
+        stat = []
+        for cnt in contours:
+            x,y,w,h = cv2.boundingRect(cnt)
+            convexHull = cv2.convexHull(cnt)
+            convexhull_area = cv2.contourArea(convexHull)
+            if convexhull_area < 100:
+                continue
+            if len(cnt)<5:
+                continue
+            if len(convexHull)<5:
+                continue
+            feature = self.origin_rgb[y:y+h, x:x+w, :]
+            stat.append(statistic_analysis(feature))
+            shape.append([w,h])
+        self.n3 = np.shape(stat)[0]
+        if (self.n3 != 0):
+            ft = np.concatenate([shape, stat], axis=1).tolist()
+            mean = np.mean(ft, axis=0).tolist()
+            stddev = np.std(ft,axis=0).tolist()
+            skewness = skew(ft,axis=0)
+            kurtosises = kurtosis(ft,axis=0)
+            self.purple = np.asarray([mean, stddev, skewness, kurtosises]).flatten()
+        else:
+            self.purple = np.zeros(56)
         
-        pass
+        
+        
+        
+        
+        
