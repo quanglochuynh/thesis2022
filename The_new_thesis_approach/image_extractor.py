@@ -281,7 +281,7 @@ class feature_extract:
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
         x,y,w,h = cv2.boundingRect(self.cnt)
         # self.origin_rgb = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
-        self.origin_rgb = cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB)
+        self.origin_rgb = cv2.resize(cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
         self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
 
         
