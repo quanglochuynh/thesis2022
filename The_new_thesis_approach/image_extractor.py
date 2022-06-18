@@ -222,8 +222,8 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
     alp = np.cos(a)
     bet = np.sin(a)
     image_hsv = cv2.warpAffine(image_hsv, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
-    if origin_bgr:
-        rot_bgr = cv2.warpAffine(image_bgr, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
+    # if origin_bgr:
+    rot_bgr = cv2.warpAffine(image_bgr, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
     x,y,w,h,cnt2 = bounding_box(rot_bgr[:,:,0])
     if Contour==True:
         if origin_bgr:
