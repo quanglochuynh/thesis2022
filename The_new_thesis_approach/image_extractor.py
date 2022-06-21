@@ -287,8 +287,8 @@ class DataSetup:
             adr = self.dir + 'test_' + self.type[self.dataID[i]] + '.npz'
             data = np.load(adr)['arr_0']
             self.x_test = np.concatenate([self.x_test, data], axis=1)
-        self.length = np.shape(self.x_test)[1]
         self.x_test = self.x_test[:,1:self.length]
+        self.length = np.shape(self.x_test)[1]
         self.x_train = [[0]]*6720
         for i in range(len(self.dataID)):
             adr = self.dir + 'train_' + self.type[self.dataID[i]] + '.npz'
