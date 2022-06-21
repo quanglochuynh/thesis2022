@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import skew, kurtosis
-from skimage.feature import graycomatrix, graycoprops
+from skimage.feature import graycomatrix, graycoprops, local_binary_pattern
+import sys;
+import os;
 
 def partition(l, r, nums):
     # Last element will be the pivot and the first element the pointer
@@ -232,6 +234,83 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
     else:
         return aspect_crop(image_hsv, x,y,w,h)
 
+class LocalBinaryPatterns:
+  def __init__(self, numPoints, radius):
+    self.numPoints = numPoints
+    self.radius = radius
+
+  def describe(self, image, eps = 1e-7):
+    lbp = local_binary_pattern(image, self.numPoints, self.radius, method="uniform")
+    (hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0, self.numPoints+3), range=(0, self.numPoints + 2))
+
+    # Normalize the histogram
+    hist = hist.astype('float')
+    hist /= (hist.sum() + eps)
+
+    return hist
+
+class DataSetup:
+    def __init__(self):
+        self.dataID = None
+        os_name = sys.platform
+        if os_name=="win32":
+            print("OS: Windows")
+            self.dir = 'D:/Thesis_data/mlp_data/new/'
+        elif os_name == "darwin":
+            print("OS: MacOS")
+            self.dir = '/Users/lochuynhquang/Desktop/mlp_data/new/'
+        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'n1', 'structure', 'n2', 'moldered', 'color_grid', 'color_grid_2', 'glcm_grid', 'comp_hsv', 'glcm_2', 'lbp']
+        self.x_test = None
+        self.x_train = None
+        self.y_test = None
+        self.y_train = None
+        self.y_test_dir = str(os.getcwd()) + '/data/Y_test_195.npz'
+        self.y_train_dir = str(os.getcwd()) + '/data/Y_train_195.npz'
+        self.model_name = None
+        for i in range(len(self.type)):
+            print(i, ': ', self.type[i])
+            
+
+    def show(self):
+        for i in range(len(self.type)):
+            adr = self.dir + 'train_' + self.type[i] + '.npz'
+            print(adr)
+
+        for i in range(len(self.type)):
+            adr = self.dir + 'test_' + self.type[i] + '.npz'
+            print(adr)
+    
+    def concat(self, dataID):
+        self.dataID = dataID
+        self.x_test = [[0]]*1680
+        for i in range(len(self.dataID)):
+            adr = self.dir + 'test_' + self.type[self.dataID[i]] + '.npz'
+            data = np.load(adr)['arr_0']
+            self.x_test = np.concatenate([self.x_test, data], axis=1)
+        self.length = np.shape(self.x_test)[1]
+        self.x_test = self.x_test[:,1:self.length]
+        self.x_train = [[0]]*6720
+        for i in range(len(self.dataID)):
+            adr = self.dir + 'train_' + self.type[self.dataID[i]] + '.npz'
+            data = np.load(adr)['arr_0']
+            self.x_train = np.concatenate([self.x_train, data], axis=1)
+        self.x_train = self.x_train[:,1:self.length]
+
+        self.y_test = np.asarray(np.load(self.y_test_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
+        self.y_train = np.asarray(np.load(self.y_train_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
+
+        print('x_test size:', np.shape(self.x_test))
+        print('x_train size:', np.shape(self.x_train))
+        print('y_test size:', np.shape(self.y_test))
+        print('y_train size:', np.shape(self.y_train))       
+        self.model_name = ''
+        for i in range(len(self.dataID)):
+            self.model_name = self.model_name + self.type[self.dataID[i]]
+            if i != len(self.dataID)-1:
+                self.model_name = self.model_name + '_'
+        self.model_name = self.model_name + '.h5'
+        print("Model name = '", self.model_name, "'")
+
 class feature_extract:
     def __init__(self) -> None:
         self.lut1 = init_lut(fn=linear_fn, coefficient=5)
@@ -265,9 +344,15 @@ class feature_extract:
         self.bins = np.linspace(0, 256, self.level+1)
         self.glcm_dissimilarity = None
         self.glcm_correlation = None
+        self.glcm_asm = None
+        self.glcm_energy = None
+        self.glcm_homogeneity = None
+        self.glcm_contrast = None
         self.myhist_H = []
         self.myhist_S = []
         self.myhist_V = []
+        self.lbp_obj = LocalBinaryPatterns(24,8)
+        self.lbp_hist = None
         pass
 
     def extract(self, image_bgr):
@@ -385,10 +470,14 @@ class feature_extract:
     def extract_glcm(self):
         self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
         digitize = np.digitize(self.clahe_v, self.bins) - 1
-        glcm = graycomatrix(digitize, [5,7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
+        glcm = graycomatrix(digitize, [1, 3], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, True)
         glcm = glcm[2:self.level+1,2:self.level+1]
         self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
         self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
+        self.glcm_contrast = graycoprops(glcm, 'contrast').flatten()
+        self.glcm_asm = graycoprops(glcm, 'ASM').flatten()
+        self.glcm_energy = graycoprops(glcm, 'energy').flatten()
+        self.glcm_homogeneity = graycoprops(glcm, 'homogeneity').flatten()
 
     def extract_glcm_grid(self):
         self.glcm_grid = []
@@ -398,7 +487,7 @@ class feature_extract:
         digitize = np.digitize(self.clahe_v, self.bins) - 1
         for i in range(0, 4):
             for j in range(0, 4):
-                glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [7,9], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
+                glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [1], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
                 self.glcm_grid = np.concatenate([self.glcm_grid, graycoprops(glcm, 'dissimilarity').flatten(), graycoprops(glcm, 'correlation').flatten()], axis=None)
 
     def extract_color_grid(self):
@@ -462,6 +551,9 @@ class feature_extract:
         else:
             self.purple = np.zeros(56)
         
+    def extract_lbp(self):
+        self.lbp_hist = self.lbp_obj.describe(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY))
+
         
         
         
