@@ -5,6 +5,7 @@ from scipy.stats import skew, kurtosis
 from skimage.feature import graycomatrix, graycoprops, local_binary_pattern
 import sys;
 import os;
+import mahotas as mh
 
 def partition(l, r, nums):
     # Last element will be the pivot and the first element the pointer
@@ -259,7 +260,7 @@ class DataSetup:
         elif os_name == "darwin":
             print("OS: MacOS")
             self.dir = '/Users/lochuynhquang/Desktop/mlp_data/new/'
-        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'n1', 'structure', 'n2', 'moldered', 'color_grid', 'color_grid_2', 'glcm_grid', 'comp_hsv', 'glcm_2', 'lbp']
+        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'n1', 'structure', 'n2', 'moldered', 'color_grid', 'color_grid_2', 'glcm_grid', 'comp_hsv', 'glcm_2', 'lbp', 'haralick']
         self.x_test = None
         self.x_train = None
         self.y_test = None
@@ -287,14 +288,15 @@ class DataSetup:
             adr = self.dir + 'test_' + self.type[self.dataID[i]] + '.npz'
             data = np.load(adr)['arr_0']
             self.x_test = np.concatenate([self.x_test, data], axis=1)
-        self.x_test = self.x_test[:,1:self.length]
         self.length = np.shape(self.x_test)[1]
+        self.x_test = self.x_test[:,1:self.length]
         self.x_train = [[0]]*6720
         for i in range(len(self.dataID)):
             adr = self.dir + 'train_' + self.type[self.dataID[i]] + '.npz'
             data = np.load(adr)['arr_0']
             self.x_train = np.concatenate([self.x_train, data], axis=1)
         self.x_train = self.x_train[:,1:self.length]
+        self.length = np.shape(self.x_test)[1]
 
         self.y_test = np.asarray(np.load(self.y_test_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
         self.y_train = np.asarray(np.load(self.y_train_dir, allow_pickle=True)['arr_0'], dtype=np.float32)
@@ -353,6 +355,7 @@ class feature_extract:
         self.myhist_V = []
         self.lbp_obj = LocalBinaryPatterns(24,8)
         self.lbp_hist = None
+        self.h_features = None
         pass
 
     def extract(self, image_bgr):
@@ -366,13 +369,14 @@ class feature_extract:
         self.extract_grid()
         self.extract_compress_HSV()
 
-    def pre_process(self, image_bgr):
+    def pre_process(self, image_bgr, fast=False):
         self.image_hsv, self.cnt, self.ellipse, image2 = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
         self.image_hsv = cv2.resize(self.image_hsv, self.im_size)
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
-        x,y,w,h = cv2.boundingRect(self.cnt)
-        self.origin_rgb = cv2.resize(cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
-        self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+        if fast==False:
+            x,y,w,h = cv2.boundingRect(self.cnt)
+            self.origin_rgb = cv2.resize(cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
+            self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
 
         
     def extract_structure(self):    
@@ -468,16 +472,18 @@ class feature_extract:
             self.mold = np.zeros(56)
         
     def extract_glcm(self):
-        self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
-        digitize = np.digitize(self.clahe_v, self.bins) - 1
-        glcm = graycomatrix(digitize, [1, 3], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, True)
-        glcm = glcm[2:self.level+1,2:self.level+1]
-        self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
-        self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
-        self.glcm_contrast = graycoprops(glcm, 'contrast').flatten()
-        self.glcm_asm = graycoprops(glcm, 'ASM').flatten()
-        self.glcm_energy = graycoprops(glcm, 'energy').flatten()
-        self.glcm_homogeneity = graycoprops(glcm, 'homogeneity').flatten()
+        # self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
+        # digitize = np.digitize(self.clahe_v, self.bins) - 1
+        # glcm = graycomatrix(digitize, [1, 3], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, True)
+        # glcm = glcm[2:self.level+1,2:self.level+1]
+        # self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
+        # self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
+        # self.glcm_contrast = graycoprops(glcm, 'contrast').flatten()
+        # self.glcm_asm = graycoprops(glcm, 'ASM').flatten()
+        # self.glcm_energy = graycoprops(glcm, 'energy').flatten()
+        # self.glcm_homogeneity = graycoprops(glcm, 'homogeneity').flatten()
+        self.h_features = mh.features.haralick(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
+
 
     def extract_glcm_grid(self):
         self.glcm_grid = []

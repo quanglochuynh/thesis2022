@@ -33,6 +33,7 @@ def batch_prepare(i):
     color_grid = []
     glcm_grid = []
     lbp_hist = []
+    haralick = []
     
     # tmp = np.zeros((14))
     
@@ -51,11 +52,10 @@ def batch_prepare(i):
         # n2 = np.concatenate([n2, extractor.n2], axis=None)
         # moldered = np.concatenate([moldered, extractor.mold], axis=None)
         # color_grid = np.concatenate([color_grid, extractor.grid_stat], axis=None)
-        extractor.pre_process(image)
-        # extractor.extract_glcm()
-        extractor.extract_lbp()
-        # glcm.append(np.concatenate([extractor.glcm_asm, extractor.glcm_contrast, extractor.glcm_correlation, extractor.glcm_dissimilarity, extractor.glcm_energy, extractor.glcm_homogeneity], axis=None))
-        lbp_hist.append(extractor.lbp_hist)
+        extractor.pre_process(image, fast=True)
+        extractor.extract_glcm()
+        haralick.append(extractor.h_features)
+        # print(np.shape(haralick))
 
     adr = 'D:/Thesis_data/mlp_data/test_'
     # np.savez_compressed(adr+ 'overall_geometry_' + classes_name[i],  overall_geometry)
@@ -68,7 +68,8 @@ def batch_prepare(i):
     # np.savez_compressed(adr+ 'color_grid_' + classes_name[i],  color_grid)
     # np.savez_compressed(adr+ 'glcm_grid_' + classes_name[i],  glcm_grid)
     # np.savez_compressed(adr+ 'glcm_2_' + classes_name[i],  glcm)
-    np.savez_compressed(adr+ 'lbp_hist_' + classes_name[i],  lbp_hist)
+    # np.savez_compressed(adr+ 'lbp_hist_' + classes_name[i],  lbp_hist)
+    np.savez_compressed(adr+ 'haralick_' + classes_name[i],  haralick)
 
 
     overall_geometry = []
@@ -82,6 +83,7 @@ def batch_prepare(i):
     color_grid = []
     glcm_grid = []
     lbp_hist = []
+    haralick = []
 
     for j in range(1,481):
         print(classes_name[i],'IMAGE ', j)
@@ -96,11 +98,10 @@ def batch_prepare(i):
         # n2.append(extractor.n2)
         # moldered.append(extractor.mold)
         # color_grid.append(extractor.grid_stat)
-        extractor.pre_process(image)
-        # extractor.extract_glcm()
-        extractor.extract_lbp()
-        # glcm.append(np.concatenate([extractor.glcm_asm, extractor.glcm_contrast, extractor.glcm_correlation, extractor.glcm_dissimilarity, extractor.glcm_energy, extractor.glcm_homogeneity], axis=None))
-        lbp_hist.append(extractor.lbp_hist)
+        extractor.pre_process(image, fast=True)
+        extractor.extract_glcm()
+        haralick.append(extractor.h_features)
+        # print(np.shape(haralick))
         
 
     adr = 'D:/Thesis_data/mlp_data/train_'
@@ -114,7 +115,7 @@ def batch_prepare(i):
     # np.savez_compressed(adr+ 'color_grid_' + classes_name[i],  color_grid)
     # np.savez_compressed(adr+ 'glcm_grid_' + classes_name[i],  glcm_grid)
     # np.savez_compressed(adr+ 'glcm_2_' + classes_name[i],  glcm)
-    np.savez_compressed(adr+ 'lbp_hist_' + classes_name[i],  lbp_hist)
+    np.savez_compressed(adr+ 'haralick_' + classes_name[i],  haralick)
 
 
 # def batch_join_file():
