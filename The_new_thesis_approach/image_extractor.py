@@ -363,11 +363,13 @@ class feature_extract:
         self.overall_geometry = geometry_analysis(self.cnt, self.ellipse)
         self.overall_rgb_stat = statistic_analysis(self.origin_rgb)
         self.overall_hsv_stat = statistic_analysis(self.image_hsv)
-        self.extract_structure()
-        self.extract_mold()
-        self.extract_glcm()
-        self.extract_grid()
+        # self.extract_structure()
+        # self.extract_mold()
+        self.extract_haralick()
+        self.extract_color_grid()   #original
+        self.extract_glcm_grid()
         self.extract_compress_HSV()
+        self.extract_lbp()
 
     def pre_process(self, image_bgr, fast=False):
         self.image_hsv, self.cnt, self.ellipse, image2 = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
@@ -377,6 +379,10 @@ class feature_extract:
             x,y,w,h = cv2.boundingRect(self.cnt)
             self.origin_rgb = cv2.resize(cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
             self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+
+    def pre_process2(self, address):
+        image_bgr = cv2.imread(address)
+        self.image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
 
         
     def extract_structure(self):    
@@ -471,17 +477,7 @@ class feature_extract:
         else:
             self.mold = np.zeros(56)
         
-    def extract_glcm(self):
-        # self.clahe_v = self.clahe4.apply(self.image_hsv[:,:,2])
-        # digitize = np.digitize(self.clahe_v, self.bins) - 1
-        # glcm = graycomatrix(digitize, [1, 3], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, True)
-        # glcm = glcm[2:self.level+1,2:self.level+1]
-        # self.glcm_dissimilarity = graycoprops(glcm, 'dissimilarity').flatten()
-        # self.glcm_correlation = graycoprops(glcm, 'correlation').flatten()
-        # self.glcm_contrast = graycoprops(glcm, 'contrast').flatten()
-        # self.glcm_asm = graycoprops(glcm, 'ASM').flatten()
-        # self.glcm_energy = graycoprops(glcm, 'energy').flatten()
-        # self.glcm_homogeneity = graycoprops(glcm, 'homogeneity').flatten()
+    def extract_haralick(self):
         self.h_features = mh.features.haralick(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
 
 
@@ -493,7 +489,7 @@ class feature_extract:
         digitize = np.digitize(self.clahe_v, self.bins) - 1
         for i in range(0, 4):
             for j in range(0, 4):
-                glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [1], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
+                glcm = graycomatrix(digitize[i*h:i*h+int(hei/4), j*w:j*w+int(wid/4)], [2], [0, np.pi/4, np.pi/2, 3*np.pi/4], self.level, True, False)
                 self.glcm_grid = np.concatenate([self.glcm_grid, graycoprops(glcm, 'dissimilarity').flatten(), graycoprops(glcm, 'correlation').flatten()], axis=None)
 
     def extract_color_grid(self):
@@ -505,6 +501,10 @@ class feature_extract:
                 self.grid_stat = np.concatenate([self.grid_stat, statistic_analysis(self.origin_rgb[i*h:i*h+int(hei/6), j*w:j*w+int(wid/4),:])], axis=None)
                 
     def extract_compress_HSV(self):
+        self.myhist_H=[]
+        self.myhist_S=[]
+        self.myhist_V=[]
+        # print(np.shape(self.image_hsv))
         hist_H, bin_edge = np.histogram(self.image_hsv[:,:,0], 252,(4,255))
         hist_S, bin_edge = np.histogram(self.image_hsv[:,:,1], 252,(4,255))
         hist_V, bin_edge = np.histogram(self.image_hsv[:,:,2], 252,(4,255))
