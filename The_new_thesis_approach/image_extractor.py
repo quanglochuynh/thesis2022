@@ -260,13 +260,13 @@ class DataSetup:
         elif os_name == "darwin":
             print("OS: MacOS")
             self.dir = '/Users/lochuynhquang/Desktop/mlp_data/new/'
-        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'n1', 'structure', 'n2', 'moldered', 'color_grid', 'color_grid_2', 'glcm_grid', 'comp_hsv', 'glcm_2', 'lbp', 'haralick']
+        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'color_grid', 'glcm_grid', 'comp_hsv', 'lbp_hist', 'haralick','red_haralick', 'blue_haralick']
         self.x_test = None
         self.x_train = None
         self.y_test = None
         self.y_train = None
-        self.y_test_dir = str(os.getcwd()) + '/data/Y_test_195.npz'
-        self.y_train_dir = str(os.getcwd()) + '/data/Y_train_195.npz'
+        self.y_test_dir = str(os.getcwd()) + '/data/y_test.npz'
+        self.y_train_dir = str(os.getcwd()) + '/data/y_train.npz'
         self.model_name = None
         for i in range(len(self.type)):
             print(i, ': ', self.type[i])
@@ -274,25 +274,25 @@ class DataSetup:
 
     def show(self):
         for i in range(len(self.type)):
-            adr = self.dir + 'train_' + self.type[i] + '.npz'
+            adr = self.dir + 'x_train_' + self.type[i] + '.npz'
             print(adr)
 
         for i in range(len(self.type)):
-            adr = self.dir + 'test_' + self.type[i] + '.npz'
+            adr = self.dir + 'x_test_' + self.type[i] + '.npz'
             print(adr)
     
     def concat(self, dataID):
         self.dataID = dataID
-        self.x_test = [[0]]*1680
+        self.x_test = [[0]]*1260
         for i in range(len(self.dataID)):
-            adr = self.dir + 'test_' + self.type[self.dataID[i]] + '.npz'
+            adr = self.dir + 'x_test_' + self.type[self.dataID[i]] + '.npz'
             data = np.load(adr)['arr_0']
             self.x_test = np.concatenate([self.x_test, data], axis=1)
         self.length = np.shape(self.x_test)[1]
         self.x_test = self.x_test[:,1:self.length]
-        self.x_train = [[0]]*6720
+        self.x_train = [[0]]*7140
         for i in range(len(self.dataID)):
-            adr = self.dir + 'train_' + self.type[self.dataID[i]] + '.npz'
+            adr = self.dir + 'x_train_' + self.type[self.dataID[i]] + '.npz'
             data = np.load(adr)['arr_0']
             self.x_train = np.concatenate([self.x_train, data], axis=1)
         self.x_train = self.x_train[:,1:self.length]
@@ -320,6 +320,7 @@ class feature_extract:
         self.image_hsv = None
         self.image_rgb = None
         self.origin_rgb = None
+        self.image_bgr = None
         self.clahe6 = cv2.createCLAHE(6, (8,8))
         self.clahe1 = cv2.createCLAHE(1, (8,8))
         self.clahe4 = cv2.createCLAHE(4, (8,8))
@@ -356,6 +357,8 @@ class feature_extract:
         self.lbp_obj = LocalBinaryPatterns(24,8)
         self.lbp_hist = None
         self.h_features = None
+        self.red_haralick = None
+        self.blue_haralick = None
         pass
 
     def extract(self, image_bgr):
@@ -381,8 +384,9 @@ class feature_extract:
             self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
 
     def pre_process2(self, address):
-        image_bgr = cv2.imread(address)
-        self.image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+        self.image_bgr = cv2.imread(address)
+        # self.image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+        
 
         
     def extract_structure(self):    
@@ -479,6 +483,9 @@ class feature_extract:
         
     def extract_haralick(self):
         self.h_features = mh.features.haralick(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
+        self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
+        self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,1], compute_14th_feature=True).flatten()
+
 
 
     def extract_glcm_grid(self):

@@ -37,7 +37,8 @@ def batch_prepare(i):
     lbp_hist = []
     haralick = []
     comp_hsv = []
-    
+    red_h = []
+    blue_h= []
     # tmp = np.zeros((14))
     
     # t = tmp
@@ -60,8 +61,9 @@ def batch_prepare(i):
         # lbp_hist.append(extractor.lbp_hist)
         add = corrected_address+ 'testing_img/' + classes_name[i] + '/image(' + str(j) + ').JPG'
         extractor.pre_process2(add)
-        extractor.extract_compress_HSV()
-        comp_hsv.append(np.concatenate([extractor.myhist_H, extractor.myhist_S, extractor.myhist_V], axis=None))        
+        extractor.extract_haralick()
+        # red_h.append(extractor.red_haralick)
+        blue_h.append(extractor.blue_haralick)    
         # plt.imsave(corrected_address + 'testing_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.image_rgb)
         # plt.imsave(original_address + 'testing_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.origin_rgb)
 
@@ -78,7 +80,9 @@ def batch_prepare(i):
     # np.savez_compressed(adr+ 'glcm_grid_' + classes_name[i],  glcm_grid)
     # np.savez_compressed(adr+ 'haralick_' + classes_name[i],  haralick)
     # np.savez_compressed(adr+ 'lbp_hist_' + classes_name[i],  lbp_hist)
-    np.savez_compressed(adr+ 'comp_hsv_' + classes_name[i],  comp_hsv)
+    # np.savez_compressed(adr+ 'comp_hsv_' + classes_name[i],  comp_hsv)
+    # np.savez_compressed(adr+ 'red_haralick_' + classes_name[i],  red_h)
+    np.savez_compressed(adr+ 'blue_haralick_' + classes_name[i],  blue_h)
 
 
     overall_geometry = []
@@ -94,6 +98,8 @@ def batch_prepare(i):
     lbp_hist = []
     haralick = []
     comp_hsv = []
+    red_h = []
+    blue_h= []
 
     for j in range(1,511):
         print(classes_name[i],'IMAGE ', j)
@@ -113,8 +119,9 @@ def batch_prepare(i):
         # lbp_hist.append(extractor.lbp_hist)
         add = corrected_address+ 'training_img/' + classes_name[i] + '/image(' + str(j) + ').JPG'
         extractor.pre_process2(add)
-        extractor.extract_compress_HSV()
-        comp_hsv.append(np.concatenate([extractor.myhist_H, extractor.myhist_S, extractor.myhist_V], axis=None))
+        extractor.extract_haralick()
+        # red_h.append(extractor.red_haralick)
+        blue_h.append(extractor.blue_haralick)
         # plt.imsave(corrected_address+ 'training_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.image_rgb)
         # plt.imsave(original_address + 'training_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.origin_rgb)
 
@@ -130,7 +137,9 @@ def batch_prepare(i):
     # np.savez_compressed(adr+ 'glcm_grid_' + classes_name[i],  glcm_grid)
     # np.savez_compressed(adr+ 'haralick_' + classes_name[i],  haralick)
     # np.savez_compressed(adr+ 'lbp_hist_' + classes_name[i],  lbp_hist)
-    np.savez_compressed(adr+ 'comp_hsv_' + classes_name[i],  comp_hsv)
+    # np.savez_compressed(adr+ 'comp_hsv_' + classes_name[i],  comp_hsv)
+    # np.savez_compressed(adr+ 'red_haralick_' + classes_name[i],  red_h)
+    np.savez_compressed(adr+ 'blue_haralick_' + classes_name[i],  blue_h)
 
 
 # def batch_join_file():
