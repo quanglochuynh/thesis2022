@@ -118,7 +118,7 @@ def geometry_analysis(cnt, ellipse):
         centroidYCoordinate = int(moment['m01'] / real_area)
         solidity = real_area/convex_area
         bb_ratio = real_area/(w*h)
-        eccentricity_distance = np.sqrt( (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2 )
+        eccentricity_distance = (centerXCoordinate-centroidXCoordinate)**2 + (centerYCoordinate-centroidYCoordinate)**2
         return [w,h,real_area, perimeter, alX, alY, ellipse_eccentricity, convex_area, eq_radius, solidity, bb_ratio, eccentricity_distance]
 
 
