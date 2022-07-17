@@ -39,7 +39,7 @@ def batch_prepare(i):
     comp_hsv = []
     red_h = []
     blue_h= []
-    # tmp = np.zeros((14))
+    green_h = []
     
     # t = tmp
     # t[i] = 1
@@ -64,6 +64,7 @@ def batch_prepare(i):
         extractor.extract_haralick()
         # red_h.append(extractor.red_haralick)
         blue_h.append(extractor.blue_haralick)    
+        green_h.append(extractor.green_haralick)
         # plt.imsave(corrected_address + 'testing_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.image_rgb)
         # plt.imsave(original_address + 'testing_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.origin_rgb)
 
@@ -83,6 +84,8 @@ def batch_prepare(i):
     # np.savez_compressed(adr+ 'comp_hsv_' + classes_name[i],  comp_hsv)
     # np.savez_compressed(adr+ 'red_haralick_' + classes_name[i],  red_h)
     np.savez_compressed(adr+ 'blue_haralick_' + classes_name[i],  blue_h)
+    np.savez_compressed(adr+ 'green_haralick_' + classes_name[i],  green_h)
+
 
 
     overall_geometry = []
@@ -100,6 +103,7 @@ def batch_prepare(i):
     comp_hsv = []
     red_h = []
     blue_h= []
+    green_h = []
 
     for j in range(1,511):
         print(classes_name[i],'IMAGE ', j)
@@ -122,6 +126,7 @@ def batch_prepare(i):
         extractor.extract_haralick()
         # red_h.append(extractor.red_haralick)
         blue_h.append(extractor.blue_haralick)
+        green_h.append(extractor.green_haralick)
         # plt.imsave(corrected_address+ 'training_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.image_rgb)
         # plt.imsave(original_address + 'training_img/' + classes_name[i] + '/image(' + str(j) + ').JPG', extractor.origin_rgb)
 
@@ -140,6 +145,7 @@ def batch_prepare(i):
     # np.savez_compressed(adr+ 'comp_hsv_' + classes_name[i],  comp_hsv)
     # np.savez_compressed(adr+ 'red_haralick_' + classes_name[i],  red_h)
     np.savez_compressed(adr+ 'blue_haralick_' + classes_name[i],  blue_h)
+    np.savez_compressed(adr+ 'green_haralick_' + classes_name[i],  green_h)
 
 
 # def batch_join_file():
@@ -175,7 +181,7 @@ if __name__ == '__main__':
     for i in range(60):
         sys.stdout.write('-')
         sys.stdout.flush()
-        time.sleep(0.02)
+        time.sleep(0.2)
 
     k=7
     p1 = multiprocessing.Process(target=batch_prepare, args=(k+0,))

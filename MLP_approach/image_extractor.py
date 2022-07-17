@@ -248,7 +248,7 @@ class LocalBinaryPatterns:
     hist = hist.astype('float')
     hist /= (hist.sum() + eps)
 
-    return hist
+    return hist,lbp
 
 class DataSetup:
     def __init__(self):
@@ -260,7 +260,7 @@ class DataSetup:
         elif os_name == "darwin":
             print("OS: MacOS")
             self.dir = '/Users/lochuynhquang/Desktop/mlp_data/new/'
-        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'color_grid', 'glcm_grid', 'comp_hsv', 'lbp_hist', 'haralick','red_haralick', 'blue_haralick']
+        self.type = ['overall_geometry', 'overall_rgb', 'overall_hsv', 'color_grid', 'glcm_grid', 'comp_hsv', 'lbp_hist', 'haralick','red_haralick', 'blue_haralick', 'green_haralick']
         self.x_test = None
         self.x_train = None
         self.y_test = None
@@ -359,6 +359,7 @@ class feature_extract:
         self.h_features = None
         self.red_haralick = None
         self.blue_haralick = None
+        self.green_haralick = None
         pass
 
     def extract(self, image_bgr):
@@ -482,9 +483,10 @@ class feature_extract:
             self.mold = np.zeros(56)
         
     def extract_haralick(self):
-        self.h_features = mh.features.haralick(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
-        self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
-        self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,1], compute_14th_feature=True).flatten()
+        # self.h_features = mh.features.haralick(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
+        # self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
+        self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,0], compute_14th_feature=True).flatten()
+        self.green_haralick = mh.features.haralick(self.image_bgr[:,:,1], compute_14th_feature=True).flatten()
 
 
 
