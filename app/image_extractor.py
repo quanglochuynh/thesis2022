@@ -377,7 +377,6 @@ class feature_extract:
         self.extract_lbp()
 
     def pre_process(self, image_bgr, fast=False):
-        # self.image_bgr = image_bgr
         self.image_hsv, self.cnt, self.ellipse, self.image_bgr = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
         self.image_hsv = cv2.resize(self.image_hsv, self.im_size)
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
@@ -385,11 +384,12 @@ class feature_extract:
             x,y,w,h = cv2.boundingRect(self.cnt)
             self.origin_rgb = cv2.resize(cv2.cvtColor(self.image_bgr[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
             self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
+            self.image_bgr_croped = self.image_bgr[y:y+h,x:x+w]
 
     def pre_process2(self, address):
-        self.image_bgr = cv2.imread(address)
-        self.image_hsv = cv2.cvtColor(self.image_bgr, cv2.COLOR_BGR2HSV)
-        
+        self.image_bgr_croped = cv2.imread(address)    #cropped
+        self.image_hsv = cv2.cvtColor(self.image_bgr_croped, cv2.COLOR_BGR2HSV)
+        self.origin_rgb = cv2.cvtColor(self.image_bgr_croped, cv2.COLOR_BGR2RGB)
 
         
     def extract_structure(self):    
@@ -485,10 +485,10 @@ class feature_extract:
             self.mold = np.zeros(56)
         
     def extract_haralick(self):
-        self.h_features = mh.features.haralick(cv2.cvtColor(self.image_bgr, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
-        self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
-        self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,0], compute_14th_feature=True).flatten()
-        self.green_haralick = mh.features.haralick(self.image_bgr[:,:,1], compute_14th_feature=True).flatten()
+        self.h_features = mh.features.haralick(cv2.cvtColor(self.image_bgr_croped, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
+        self.red_haralick  = mh.features.haralick(self.image_rgb[:,:,0], compute_14th_feature=True).flatten()
+        self.blue_haralick = mh.features.haralick(self.image_rgb[:,:,2], compute_14th_feature=True).flatten()
+        self.green_haralick = mh.features.haralick(self.image_rgb[:,:,1], compute_14th_feature=True).flatten()
 
     def extract_glcm_grid(self):
         self.glcm_grid = []

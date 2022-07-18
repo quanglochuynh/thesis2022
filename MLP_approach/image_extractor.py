@@ -1,3 +1,4 @@
+from tkinter.messagebox import NO
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -225,12 +226,11 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
     alp = np.cos(a)
     bet = np.sin(a)
     image_hsv = cv2.warpAffine(image_hsv, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
-    # if origin_bgr:
     rot_bgr = cv2.warpAffine(image_bgr, np.float32([[alp, bet, (1-alp)*mx - bet*my], [-bet, alp, bet*mx + (1-alp)*my]]), (im_wid_input, im_hei_input))
     x,y,w,h,cnt2 = bounding_box(rot_bgr[:,:,0])
     if Contour==True:
         if origin_bgr:
-            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr
+            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
         return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse                    # return ellipse
     else:
         return aspect_crop(image_hsv, x,y,w,h)
@@ -310,7 +310,7 @@ class DataSetup:
             self.model_name = self.model_name + self.type[self.dataID[i]]
             if i != len(self.dataID)-1:
                 self.model_name = self.model_name + '_'
-        self.model_name = self.model_name + '.h5'
+        self.model_name = self.model_name
         print("Model name = '", self.model_name, "'")
 
 class feature_extract:
@@ -367,8 +367,8 @@ class feature_extract:
         self.overall_geometry = geometry_analysis(self.cnt, self.ellipse)
         self.overall_rgb_stat = statistic_analysis(self.origin_rgb)
         self.overall_hsv_stat = statistic_analysis(self.image_hsv)
-        # self.extract_structure()
-        # self.extract_mold()
+        self.extract_structure()
+        self.extract_mold()
         self.extract_haralick()
         self.extract_color_grid()   #original
         self.extract_glcm_grid()
@@ -376,17 +376,18 @@ class feature_extract:
         self.extract_lbp()
 
     def pre_process(self, image_bgr, fast=False):
-        self.image_hsv, self.cnt, self.ellipse, image2 = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
+        # self.image_bgr = image_bgr
+        self.image_hsv, self.cnt, self.ellipse, self.image_bgr = preprocess_hsv(image_bgr, self.lut1, self.lut2, Contour=True, origin_bgr=True)
         self.image_hsv = cv2.resize(self.image_hsv, self.im_size)
         self.image_rgb = cv2.cvtColor(self.image_hsv, cv2.COLOR_HSV2RGB)
         if fast==False:
             x,y,w,h = cv2.boundingRect(self.cnt)
-            self.origin_rgb = cv2.resize(cv2.cvtColor(image2[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
+            self.origin_rgb = cv2.resize(cv2.cvtColor(self.image_bgr[y:y+h, x:x+w], cv2.COLOR_BGR2RGB),self.im_size)
             self.clahe_v = self.clahe6.apply(self.image_hsv[:,:,2])
 
     def pre_process2(self, address):
         self.image_bgr = cv2.imread(address)
-        # self.image_hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+        self.image_hsv = cv2.cvtColor(self.image_bgr, cv2.COLOR_BGR2HSV)
         
 
         
@@ -483,12 +484,10 @@ class feature_extract:
             self.mold = np.zeros(56)
         
     def extract_haralick(self):
-        # self.h_features = mh.features.haralick(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
-        # self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
+        self.h_features = mh.features.haralick(cv2.cvtColor(self.image_bgr, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
+        self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
         self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,0], compute_14th_feature=True).flatten()
         self.green_haralick = mh.features.haralick(self.image_bgr[:,:,1], compute_14th_feature=True).flatten()
-
-
 
     def extract_glcm_grid(self):
         self.glcm_grid = []
@@ -569,7 +568,8 @@ class feature_extract:
     def extract_lbp(self):
         self.lbp_hist = self.lbp_obj.describe(cv2.cvtColor(self.image_rgb, cv2.COLOR_RGB2GRAY))
 
-        
+    def concat(self):
+        return np.concatenate([self.overall_geometry, self.overall_rgb_stat, self.grid_stat, self.glcm_grid, self.myhist_H, self.myhist_S, self.myhist_V, self.red_haralick, self.blue_haralick, self.green_haralick], axis=None)
         
         
         
