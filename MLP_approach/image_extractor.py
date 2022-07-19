@@ -6,7 +6,6 @@ from scipy.stats import skew, kurtosis
 from skimage.feature import graycomatrix, graycoprops, local_binary_pattern
 import sys;
 import os;
-import mahotas as mh
 
 def partition(l, r, nums):
     # Last element will be the pivot and the first element the pointer
@@ -230,7 +229,9 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
     x,y,w,h,cnt2 = bounding_box(rot_bgr[:,:,0])
     if Contour==True:
         if origin_bgr:
-            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
+            # return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
+            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr
+  
         return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse                    # return ellipse
     else:
         return aspect_crop(image_hsv, x,y,w,h)
@@ -484,6 +485,8 @@ class feature_extract:
             self.mold = np.zeros(56)
         
     def extract_haralick(self):
+        import mahotas as mh
+
         self.h_features = mh.features.haralick(cv2.cvtColor(self.image_bgr, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
         self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
         self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,0], compute_14th_feature=True).flatten()
