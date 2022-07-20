@@ -58,9 +58,6 @@ def hsv_filter(im):
         for j in range(sp[1]):
             if image[i][j][2]<40:
                 image[i][j] = np.array([0, 0, 0])
-    # h,s,v = cv2.split(im)
-    # th_v = cv2.threshold(v, 25, 255, cv2.THRESH_TOZERO)
-
     return image 
 
 def histogram_analysis(im, plot=False):
@@ -229,10 +226,8 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
     x,y,w,h,cnt2 = bounding_box(rot_bgr[:,:,0])
     if Contour==True:
         if origin_bgr:
-            # return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
-            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr
-  
-        return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse                    # return ellipse
+            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
+        return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse    
     else:
         return aspect_crop(image_hsv, x,y,w,h)
 
@@ -244,11 +239,8 @@ class LocalBinaryPatterns:
   def describe(self, image, eps = 1e-7):
     lbp = local_binary_pattern(image, self.numPoints, self.radius, method="uniform")
     (hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0, self.numPoints+3), range=(0, self.numPoints + 2))
-
-    # Normalize the histogram
     hist = hist.astype('float')
     hist /= (hist.sum() + eps)
-
     return hist,lbp
 
 class DataSetup:
@@ -346,12 +338,6 @@ class feature_extract:
         self.mold = None
         self.purple = None
         self.bins = np.linspace(0, 256, self.level+1)
-        self.glcm_dissimilarity = None
-        self.glcm_correlation = None
-        self.glcm_asm = None
-        self.glcm_energy = None
-        self.glcm_homogeneity = None
-        self.glcm_contrast = None
         self.myhist_H = []
         self.myhist_S = []
         self.myhist_V = []
@@ -486,7 +472,6 @@ class feature_extract:
         
     def extract_haralick(self):
         import mahotas as mh
-
         self.h_features = mh.features.haralick(cv2.cvtColor(self.image_bgr, cv2.COLOR_RGB2GRAY), compute_14th_feature=True).flatten()
         self.red_haralick  = mh.features.haralick(self.image_bgr[:,:,2], compute_14th_feature=True).flatten()
         self.blue_haralick = mh.features.haralick(self.image_bgr[:,:,0], compute_14th_feature=True).flatten()
