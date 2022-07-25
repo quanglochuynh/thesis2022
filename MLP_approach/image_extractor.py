@@ -226,7 +226,9 @@ def preprocess_hsv(image_bgr, lut1=None, lut2=None, Contour=True, origin_bgr=Fal
     x,y,w,h,cnt2 = bounding_box(rot_bgr[:,:,0])
     if Contour==True:
         if origin_bgr:
-            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
+            # return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr[y:y+h,x:x+w]
+            return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse, rot_bgr
+
         return aspect_crop(image_hsv, x,y,w,h), cnt2, ellipse    
     else:
         return aspect_crop(image_hsv, x,y,w,h)
